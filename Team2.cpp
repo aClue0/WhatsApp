@@ -5,7 +5,7 @@
 using namespace std;
 
 // ========================
-//       USER CLASS
+//       USER CLASS   habiba 
 // ========================
 class User
 {
@@ -316,9 +316,14 @@ private:
     vector<Chat *> chats;
     int currentUserIndex;
 
-    int findUserIndex(string username) const
+    int findUserIndex(string  username) const
     {
         // TODO: Implement user search
+        for (int i = 0; i < users.size(); i++) {
+            if (users [i].username  == username)
+                return currentUserIndex;
+        }
+       
         return -1;
     }
 
