@@ -320,7 +320,7 @@ private:
     {
         // TODO: Implement user search
         for (int i = 0; i < users.size(); i++) {
-            if (users [i].username  == username)
+            if (users [i].getUsername()  == username)
                 return currentUserIndex;
         }
        
@@ -330,6 +330,7 @@ private:
     bool isLoggedIn() const
     {
         // TODO: Implement login check lllllll hab
+
         return false;
     }
 
