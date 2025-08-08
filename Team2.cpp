@@ -3,13 +3,12 @@
 #include <string>
 #include <ctime>
 #include <fstream>
-
 using namespace std;
 
 // ========================
 //       USER CLASS
 // ========================
-class User
+class User // FINISHED
 {
 private:
     string username;
@@ -105,7 +104,7 @@ public:
 // ========================
 //      MESSAGE CLASS
 // ========================
-class Message // Rahma
+class Message // FINISHED
 {
 private:
     string sender; //   users = {"hazem", "rahma" , "salma"}
@@ -219,7 +218,7 @@ public:
         }
         else if (emojiCode == "angry")
         {
-            content += "😡 ";
+            content += "😡";
         }
         else if (emojiCode == "heart")
         {
@@ -239,7 +238,7 @@ public:
 // ========================
 //       CHAT CLASS (BASE)
 // ========================
-class Chat // Hazem
+class Chat // FINISHED
 {
 protected:
     vector<string> participants;
@@ -297,7 +296,8 @@ public:
         bool found = false;
         for (int i = 0; i < messages.size(); i++)
         {
-            if (messages[i].getContent().find(keyword)) //
+
+            if (messages[i].getContent().find(keyword) != string::npos)
             {
                 result.push_back(messages[i]);
                 found = true;
