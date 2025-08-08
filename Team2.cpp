@@ -1,4 +1,4 @@
-#include <iostream>
+﻿#include <iostream>
 #include <vector>
 #include <string>
 #include <ctime>
@@ -111,67 +111,112 @@ public:
     Message()
     {
         // TODO: Implement default constructor
+         sender = "";
+         content = "";
+         timestamp ="";
+         status = "Sent";
+         replyTo = nullptr;
+
     }
 
     Message(string sndr, string cntnt)
     {
         // TODO: Implement parameterized constructor
+        sender = sndr;
+        content = cntnt;
+        updateTimestamp();
+        status = "Sent";
+
     }
 
     string getContent() const
     {
         // TODO: Implement getter
-        return "";
+        return content ;
     }
 
     string getSender() const
     {
         // TODO: Implement getter
-        return "";
+        return sender ;
     }
 
     string getTimestamp() const
     {
         // TODO: Implement getter
-        return "";
+        return  timestamp ;
     }
 
     string getStatus() const
     {
         // TODO: Implement getter
-        return "";
+        return status;
     }
 
     Message *getReplyTo() const
     {
         // TODO: Implement getter
-        return nullptr;
+        return replyTo;
     }
 
     void setStatus(string newStatus)
     {
         // TODO: Implement setter
+        status = newStatus;
     }
 
     void setReplyTo(Message *msg)
     {
         // TODO: Implement setter
+        replyTo = msg;
     }
 
     void updateTimestamp()
     {
         // TODO: Implement timestamp update
+        time_t now = time(0);
+        char* data_time = ctime(&now);
+        timestamp = string(data_time);
+        timestamp.pop_back();
+        
     }
 
     void display() const
     {
         // TODO: Implement message display
+        if (replyTo != nullptr) {
+            cout << sender <<" | " << content<<" | " << timestamp;
+            cout << "replied to : "  << replyTo ->getSender()<<" | "<<replyTo -> getContent()<<endl;
+
+        }
+        else {
+            cout << sender << " | " << content << " | " << timestamp<<endl;
+        }
     }
 
     void addEmoji(string emojiCode)
     {
         // TODO: Implement emoji support
+        if (emojiCode == "smile") {
+            content += "😄";
+        }
+        else if (emojiCode == "SHY") {
+            content += "🤭";
+        }
+        else if (emojiCode == "angry") {
+            content += "😡 ";
+        }
+        else if (emojiCode == "heart") {
+            content += "❤";
+        }
+        else if (emojiCode == "cry") {
+            content += "😭";
+        }
+        else {
+            content += "Not defined";
+        }
     }
+        
 };
 
 // ========================
