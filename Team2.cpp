@@ -73,6 +73,12 @@ public:
     {
         // TODO: Implement last seen update
         // if this user logged out , return time that he logged out at using ctime
+        time_t currentTime = time(0);
+        lastSeen = ctime(&currentTime);
+        // Remove the newline character that ctime adds
+        if (!lastSeen.empty() && lastSeen.back() == '\n') {
+            lastSeen.pop_back();
+        }
     }
 
     bool checkPassword(string pwd) const
