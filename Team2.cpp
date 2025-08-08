@@ -350,6 +350,7 @@ class PrivateChat : public Chat // Menna
 private:
     string user1;
     string user2;
+    vector<string> Messages; //stored message in chat
 
 public:
     PrivateChat(string u1, string u2)
@@ -358,17 +359,26 @@ public:
         user1 = u1;
         user2 = u2;
     }
+    void sendMessage()
+    {
+        string Message;
+        cout<<user1<<"enter your message:";
+        getline(cin,Message);
+        Messages.push_back(Message);
+
+    }
 
     void displayChat() const override
     {
-        // TODO: Implement private chat display
-    }
+        cout<< "chat between"<< user1 <<"and"<< user2 <<":\n";
+        for(size_t i=0;i<Messages.size();i++)
+        {
+            cout<<Messages[i]<<endl;
 
-    void showTypingIndicator(const string &username) const
-    {
-        // TODO: Implement typing indicator
-    }
-};
+        }
+    }  
+}
+
 
 // ========================
 //      GROUP CHAT CLASS
