@@ -330,13 +330,25 @@ private:
     bool isLoggedIn() const
     {
         // TODO: Implement login check lllllll hab
+         if(isLoggedIn()){
+            return true ;
+         } 
+        else{
+         } 
 
+             
         return false;
     }
 
     string getCurrentUsername() const
     {
-        // TODO: Implement get current user
+        // TODO: Implement get current user 
+       
+        if ( currentUserIndex != -1 ){
+            return ;
+        }
+        else{}
+
         return "";
     }
 
