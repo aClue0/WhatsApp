@@ -20,9 +20,9 @@ public:
     User()
     {
         // TODO: Implement default constructor
-        string username;
-        string password;
-        string phoneNumber;
+        username = "";
+        password = "";
+        phoneNumber = "";
     }
 
     User(string uname, string pwd, string phone)
