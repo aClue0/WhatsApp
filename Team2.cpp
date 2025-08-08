@@ -1,8 +1,10 @@
-﻿#include <iostream>
+﻿#include <iostream> // check line 313
 #include <vector>
 #include <string>
 #include <ctime>
-using namespace std; // fdsakjghadsjklghasdklgjhasdjklghaj
+#include <fstream>
+
+using namespace std;
 
 // ========================
 //       USER CLASS
@@ -25,7 +27,7 @@ public:
         phoneNumber = "";
     }
 
-    User(string uname, string pwd, string phone)
+    User(string uname, string pwd, string phone) // User Hazem("0clue" , "1234" , "01205417173");
     {
         // TODO: Implement parameterized constructor
         username = uname;
@@ -69,14 +71,13 @@ public:
         phoneNumber = phone;
     }
 
-    void updateLastSeen() //       WHERE IS THIS
+    void updateLastSeen()
     {
         // TODO: Implement last seen update
-        // if this user logged out , return time that he logged out at using ctime
         time_t currentTime = time(0);
         lastSeen = ctime(&currentTime);
-        // Remove the newline character that ctime adds
-        if (!lastSeen.empty() && lastSeen.back() == '\n') {
+        if (!lastSeen.empty() && lastSeen.back() == '\n')
+        {
             lastSeen.pop_back();
         }
     }
@@ -104,10 +105,10 @@ public:
 // ========================
 //      MESSAGE CLASS
 // ========================
-class Message // Rahma + Salma
+class Message // Rahma
 {
 private:
-    string sender;
+    string sender; //   users = {"hazem", "rahma" , "salma"}
     string content;
     string timestamp;
     string status;
@@ -117,12 +118,11 @@ public:
     Message()
     {
         // TODO: Implement default constructor
-         sender = "";
-         content = "";
-         timestamp ="";
-         status = "Sent";
-         replyTo = nullptr;
-
+        sender = "";
+        content = "";
+        timestamp = "";
+        status = "Sent";
+        replyTo = nullptr;
     }
 
     Message(string sndr, string cntnt)
@@ -132,25 +132,24 @@ public:
         content = cntnt;
         updateTimestamp();
         status = "Sent";
-
     }
 
     string getContent() const
     {
         // TODO: Implement getter
-        return content ;
+        return content;
     }
 
     string getSender() const
     {
         // TODO: Implement getter
-        return sender ;
+        return sender;
     }
 
     string getTimestamp() const
     {
         // TODO: Implement getter
-        return  timestamp ;
+        return timestamp;
     }
 
     string getStatus() const
@@ -179,56 +178,68 @@ public:
 
     void updateTimestamp()
     {
-        // TODO: Implement timestamp update
         time_t now = time(0);
-        char* data_time = ctime(&now);
-        timestamp = string(data_time);
-        timestamp.pop_back();
-        
+        timestamp = ctime(&now);
+        if (!timestamp.empty() && timestamp.back() == '\n')
+        {
+            timestamp.pop_back();
+        }
     }
 
     void display() const
     {
         // TODO: Implement message display
-        if (replyTo != nullptr) {
-            cout << sender <<" | " << content<<" | " << timestamp;
-            cout << "replied to : "  << replyTo ->getSender()<<" | "<<replyTo -> getContent()<<endl;
-
+        if (replyTo != nullptr)
+        {
+            cout << sender << endl;
+            cout << "replied to : " << replyTo->getSender() << endl
+                 << " \" " << replyTo->getContent() << " \" " << endl;
+            cout << endl
+                 << content << endl
+                 << timestamp << endl;
         }
-        else {
-            cout << sender << " | " << content << " | " << timestamp<<endl;
+        else
+        {
+            cout << sender << endl
+                 << content << endl
+                 << timestamp << endl;
         }
     }
 
     void addEmoji(string emojiCode)
     {
         // TODO: Implement emoji support
-        if (emojiCode == "smile") {
+        if (emojiCode == "smile")
+        {
             content += "😄";
         }
-        else if (emojiCode == "SHY") {
+        else if (emojiCode == "shy")
+        {
             content += "🤭";
         }
-        else if (emojiCode == "angry") {
+        else if (emojiCode == "angry")
+        {
             content += "😡 ";
         }
-        else if (emojiCode == "heart") {
+        else if (emojiCode == "heart")
+        {
             content += "❤";
         }
-        else if (emojiCode == "cry") {
+        else if (emojiCode == "cry")
+        {
             content += "😭";
         }
-        else {
+        else
+        {
             content += "Not defined";
         }
     }
-        
 };
 
 // ========================
 //       CHAT CLASS (BASE)
 // ========================
-class Chat // Hazem + Salma
+class Chat // Hazem
 {
 protected:
     vector<string> participants;
@@ -239,45 +250,102 @@ public:
     Chat()
     {
         // TODO: Implement default constructor
+        participants = {};
+        messages = {};
+        chatName = {};
     }
 
     Chat(vector<string> users, string name)
     {
         // TODO: Implement parameterized constructor
+        participants = users;
+        chatName = name;
     }
 
     void addMessage(const Message &msg)
     {
         // TODO: Implement message addition
+        messages.push_back(msg);
     }
 
     bool deleteMessage(int index, const string &username)
     {
         // TODO: Implement message deletion
+        if ((index >= 0 && index < messages.size()) && messages[index].getSender() == username)
+        {
+            messages.erase(messages.begin() + index);
+            cout << "Message deleted successfully" << endl;
+            return true;
+        }
         return false;
     }
 
     virtual void displayChat() const
     {
         // TODO: Implement chat display
+        cout << "Chat " << chatName << endl;
+        for (int i = 0; i < messages.size(); i++)
+        {
+            messages[i].display();
+        }
     }
 
     vector<Message> searchMessages(string keyword) const
     {
         // TODO: Implement message search
-        return {};
+        vector<Message> result;
+        bool found = false;
+        for (int i = 0; i < messages.size(); i++)
+        {
+            if (messages[i].getContent().find(keyword)) //
+            {
+                result.push_back(messages[i]);
+                found = true;
+            }
+        }
+        if (!found)
+        {
+            cout << "No messages has the keyword : " << keyword << endl;
+        }
+        return result;
     }
 
-    void exportToFile(const string &filename) const
+    void exportToFile(const string &filename) const // FuzetekProjectT2.exportToFile(Fuzetek);
     {
         // TODO: Implement export to file
+        ofstream file(filename);
+        if (!file.is_open())
+        {
+            cout << "Error: Unable to create file " << filename << endl;
+            return;
+        }
+
+        file << "Chat: " << chatName << endl;
+
+        for (int i = 0; i < participants.size(); i++) // printing the members of the group
+        {
+            file << "Members of the chat : " << participants[i];
+
+            if (i != participants.size() - 1)
+            {
+                file << ", ";
+            }
+        }
+
+        file << endl;
+        file << "---------------------------------------------" << endl;
+
+        for (int i = 0; i < messages.size(); i++)
+        {
+            file << messages[i].getSender() << ", " << messages[i].getContent() << endl;
+        }
     }
 };
 
 // ========================
 //     PRIVATE CHAT CLASS
 // ========================
-class PrivateChat : public Chat // Menna + Salma
+class PrivateChat : public Chat // Menna
 {
 private:
     string user1;
@@ -320,7 +388,7 @@ public:
     void addAdmin(string newAdmin)
     {
         // TODO: Implement add admin
-        admins.push_back(newAdmin); // I did this
+        admins.push_back(newAdmin); // Hazem did this
     }
 
     bool removeParticipant(const string &admin, const string &userToRemove)
@@ -360,7 +428,7 @@ public:
 // ========================
 //    WHATSAPP APP CLASS
 // ========================
-class WhatsApp // Habiba + Salma
+class WhatsApp // Habiba
 {
 private:
     vector<User> users;
@@ -370,6 +438,13 @@ private:
     int findUserIndex(string username) const
     {
         // TODO: Implement user search
+        for (int i = 0; i < users.size(); i++)
+        {
+            if (users[i].getUsername() == username)
+            {
+                return currentUserIndex;
+            }
+        }
         return -1;
     }
 
