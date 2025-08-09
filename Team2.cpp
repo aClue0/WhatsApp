@@ -377,7 +377,7 @@ public:
 
         }
     }  
-}
+};
 
 
 // ========================
@@ -393,6 +393,10 @@ public:
     GroupChat(vector<string> users, string name, string creator)
     {
         // TODO: Implement constructor
+        participants = users;
+        chatName = name;
+        admins.push_back(creator);
+
     }
 
     void addAdmin(string newAdmin)
@@ -404,6 +408,35 @@ public:
     bool removeParticipant(const string &admin, const string &userToRemove)
     {
         // TODO: Implement remove participant
+        bool is_admin= false;
+
+        for(const auto& ad : admins)
+        {
+            if(ad == admin)
+            {
+                is_admin = true;
+                break;
+            }
+        }
+        
+        if(!is_admin)
+        {
+              cout <<  admin << " is not an admin of this group" << endl;
+              return false;
+        }
+      
+        for(int i =0; i< participants.size(); i++)
+                {
+                    if(userToRemove == participants[i])
+                    {
+                        participants.erase(participants.begin()+i);
+                        cout << admin << " Has Removed " << userToRemove << " Form The Group" << endl ;
+                        return true;
+                    }
+                }
+           
+
+         cout <<  userToRemove << " Not in the group chat"<< endl;   
         return false;
     }
 
