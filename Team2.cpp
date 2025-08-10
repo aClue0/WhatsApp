@@ -345,7 +345,7 @@ private:
         // TODO: Implement get current user 
        
         if ( currentUserIndex != -1 ){
-            return ;
+            return users[ currentUserIndex].getUsername()  ;
         }
         else{}
 
