@@ -417,8 +417,8 @@ public:
         // TODO: Implement constructor
         user1 = u1;
         user2 = u2;
-        // participants = {u1, u2};
-        // chatName = u1 + " and " + u2;
+        participants = {u1, u2};
+        chatName = u1 + " and " + u2;
     }
 
     void sendMessage()
@@ -432,25 +432,26 @@ public:
 
     void displayChat() const override
     {
-        cout << "Private Chat between " << user1 << " and " << user2 << endl
-             << endl;
-
-        /* if (messages.empty()) {
-            cout << "No messages yet. Start the conversation!" << endl;*/
-
-        for (int i = 0; i < messages.size(); i++)
+        cout << chatName << endl;
+        if (messages.empty())
         {
-            messages[i].display();
+            cout << "No messages yet. Start the conversation!" << endl;
+        }
+        else
+        {
+            for (int i = 0; i < messages.size(); i++)
+            {
+                messages[i].display();
+            }
         }
     }
 
     void showTypingIndicator(const string &username) const
-    { // added again - howa kan ra7 feen ?? -salma
+    {
         // TODO: Implement typing indicator
         cout << username << " is typing..." << endl;
     }
 };
-
 
 // ========================
 //      GROUP CHAT CLASS
@@ -498,51 +499,7 @@ public:
     bool removeParticipant(const string &admin, const string &userToRemove)
     {
         // TODO: Implement remove participant
-        bool is_admin = isAdmin(admin);
-        bool is_participant = isParticipant(userToRemove);
-        bool was_admin = isAdmin(userToRemove);
-
-        if (!is_admin)
-        {
-            cout << admin << " is not an admin of this group" << endl;
-            return false;
-        }
-        else if (admin == userToRemove)
-        {
-            cout << "Admins can't remove themselves" << endl;
-            return false;
-        }
-
-        if (!is_participant)
-        {
-            cout << userToRemove << " is not in the group chat" << endl;
-            return false;
-        }
-
-        for (int i = 0; i < participants.size(); i++)
-        {
-            if (userToRemove == participants[i])
-            {
-                participants.erase(participants.begin() + i);
-                break;
-            }
-        }
-
-        if (was_admin)
-        {
-            for (int j = 0; j < admins.size(); j++)
-            {
-                if (userToRemove == admins[j])
-                {
-                    admins.erase(admins.begin() + j);
-                    break;
-                }
-            }
-        }
-
-        cout << admin << " Has Removed " << userToRemove << " From The Group" << endl;
-
-        return true;
+        return false;
     }
 
     bool isAdmin(string username) const
@@ -656,13 +613,10 @@ public:
         cin.ignore();
         cout << "Enter your Username : " << endl;
         getline(cin, username);
-        for (int i = 0; i < users.size(); i++)
+        if (findUserIndex(username) != -1)
         {
-            if (users[i].getUsername() == username)
-            {
-                cout << "Username Taken!" << endl;
-                return;
-            }
+            cout << "Username Taken!" << endl;
+            return;
         }
         cout << "Enter your Password : " << endl;
         getline(cin, password);
@@ -702,19 +656,32 @@ public:
         string u2;
         cout << "Who do you want to chat with? " << endl;
         getline(cin, u2);
-        for (int i = 0; i < users.size(); i++)
+        bool exists = false;
+        for (int i = 0; i < chats.size(); i++)
         {
-            if (users[i].getUsername() == u2)
+            if (chats[i]->getName() == u1 + " and " + u2)
             {
-                break;
-            }
-            else if (i == users.size() - 1)
-            {
-                cout << "There's no user with that username!";
-                return;
+                exists = true;
             }
         }
-        PrivateChat(u1, u2);
+
+        if (!exists)
+        {
+            for (int i = 0; i < users.size(); i++)
+            {
+                if (users[i].getUsername() == u2)
+                {
+                    break;
+                }
+                else if (i == users.size() - 1)
+                {
+                    cout << "There's no user with that username!";
+                    return;
+                }
+            }
+            PrivateChat *thisChat = new PrivateChat(u1, u2);
+            chats.push_back(thisChat);
+        }
     }
 
     void createGroup()
@@ -725,21 +692,19 @@ public:
     void viewChats() const
     {
         // TODO: Implement chat viewing
-        cout << "Private Chats: " << endl;
+        cout << "Chats: " << endl;
         for (int i = 0; i < chats.size(); i++)
         {
-            // chats[i]->getName this needs work i want to print each name and make him choose the chat he wants to enter and then
-        }
-        cout << "Group Chats:" << endl;
-        for (int i = 0; i < chats.size(); i++)
-        {
-            // same here but for group chats
+            // chats[i]->getName this needs work i want to print each name and make him choose the chat he wants to enter and thend
         }
     }
 
     void logout()
     {
         // TODO: Implement logout
+        users[currentUserIndex].setStatus("offline");
+        users[currentUserIndex].updateLastSeen();
+        return;
     }
 
     void run()
