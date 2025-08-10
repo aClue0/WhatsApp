@@ -163,6 +163,11 @@ public:
         return replyTo;
     }
 
+    void setContent(string cntnt)
+    {
+        content = cntnt;
+    }
+
     void setStatus(string newStatus)
     {
         // TODO: Implement setter
@@ -279,6 +284,25 @@ public:
         return false;
     }
 
+    void editMessage(int idx, string cntnt, const string &username)
+    {
+        if (idx < 0 || idx >= messages.size())
+        {
+            cout << "No index with that number found!" << endl;
+            return;
+        }
+        else if (messages[idx].getSender() != username)
+        {
+            cout << "You didn't send this message!" << endl;
+            return;
+        }
+        else
+        {
+            messages[idx].setContent(cntnt);
+            cout << "Message edited successfully" << endl;
+        }
+    }
+
     virtual void displayChat() const
     {
         // TODO: Implement chat display
@@ -345,12 +369,11 @@ public:
 // ========================
 //     PRIVATE CHAT CLASS
 // ========================
-class PrivateChat : public Chat // Menna
+class PrivateChat : public Chat // Menna , This needs alot of work I tried to make it better -Hazem
 {
 private:
     string user1;
     string user2;
-    vector<string> Messages; //stored message in chat
 
 public:
     PrivateChat(string u1, string u2)
@@ -358,23 +381,61 @@ public:
         // TODO: Implement constructor
         user1 = u1;
         user2 = u2;
+        Chat thisChat({u1, u2}, "Private Chat");
+        cout << "Begin your chat with " << u2 << "!" << endl;
+        string input;
+
+        while (true)
+        {
+            cout << "Enter a message, or type \"D\" to delete a message, or \"E\" to edit a message, or \"exit\" to quit" << endl;
+            getline(cin, input);
+
+            if (input == "D")
+            {
+                cout << "Enter the index of the message you want to delete : " << endl;
+                int index;
+                cin >> index;
+                cin.ignore(); // Clear the newline after reading integer
+                deleteMessage(index, u1);
+            }
+            else if (input == "E")
+            {
+                int idx;
+                string content;
+                cout << "Enter the index of the message you want to edit : " << endl;
+                cin >> idx;
+                cin.ignore(); // Clear the newline after reading integer
+                cout << "Enter the content of the edited message :" << endl;
+                getline(cin, content);
+                editMessage(idx, content, u1);
+            }
+            else if (input == "exit")
+            {
+                cout << "You exited your chat with " << u2 << "!" << endl;
+                break;
+            }
+            else
+            {
+                Message thisMessage(u1, input);
+                addMessage(thisMessage);
+            }
+        }
     }
     void sendMessage()
     {
-        string Message;
-        cout<<user1<<"enter your message:";
-        getline(cin,Message);
-        Messages.push_back(Message);
-
+        cout << user1 << "enter your message: " << endl;
+        string content;
+        getline(cin, content);
+        Message msg(user1, content);
+        addMessage(msg);
     }
 
     void displayChat() const override
     {
-        cout<< "chat between"<< user1 <<"and"<< user2 <<":\n";
-        for(size_t i=0;i<Messages.size();i++)
+        cout << "Private Chat between " << user1 << " and " << user2 << endl;
+        for (int i = 0; i < messages.size(); i++)
         {
-            cout<<Messages[i]<<endl;
-
+            messages[i].display();
         }
     }  
 };
@@ -452,7 +513,7 @@ private:
         {
             if (users[i].getUsername() == username)
             {
-                return currentUserIndex;
+                return i;
             }
         }
         return -1;
@@ -461,6 +522,10 @@ private:
     bool isLoggedIn() const
     {
         // TODO: Implement login check
+        if (currentUserIndex != -1 && users[currentUserIndex].getStatus() == "online")
+        {
+            return true;
+        }
         return false;
     }
 
@@ -475,17 +540,70 @@ public:
 
     void signUp()
     {
-        // TODO: Implement user registration
+        // TODO: Implement user registrat
+        string username, phone, password;
+        cin.ignore();
+        cout << "Enter your Username : " << endl;
+        getline(cin, username);
+        for (int i = 0; i < users.size(); i++)
+        {
+            if (users[i].getUsername() == username)
+            {
+                cout << "Username Taken!" << endl;
+                return;
+            }
+        }
+        cout << "Enter your Password : " << endl;
+        getline(cin, password);
+        cout << "Enter your Phonenumber : " << endl;
+        getline(cin, phone);
+        User thisUser(username, password, phone);
+        users.push_back(thisUser);
     }
 
     void login()
     {
         // TODO: Implement user login
+        string username, password;
+        cin.ignore();
+        cout << "Enter your username : " << endl;
+        getline(cin, username);
+        cout << "Enter your password : " << endl;
+        getline(cin, password);
+        for (int i = 0; i < users.size(); i++)
+        {
+            if ((users[i].getUsername() == username) && users[i].checkPassword(password))
+            {
+                cout << "Login Successful!" << endl;
+                currentUserIndex = i;
+                users[i].setStatus("online");
+                return;
+            }
+        }
+        cout << "Username or Password is not correct!" << endl;
     }
 
     void startPrivateChat()
     {
         // TODO: Implement private chat creation
+        cin.ignore();
+        string u1 = users[currentUserIndex].getUsername();
+        string u2;
+        cout << "Who do you want to chat with? " << endl;
+        getline(cin, u2);
+        for (int i = 0; i < users.size(); i++)
+        {
+            if (users[i].getUsername() == u2)
+            {
+                break;
+            }
+            else if (i == users.size() - 1)
+            {
+                cout << "There's no user with that username!" << endl;
+                return;
+            }
+        }
+        PrivateChat(u1, u2);
     }
 
     void createGroup()
