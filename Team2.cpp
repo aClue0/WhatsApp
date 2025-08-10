@@ -8,7 +8,7 @@ using namespace std;
 // ========================
 //       USER CLASS
 // ========================
-class User // FINISHED
+class User // username,password,phone
 {
 private:
     string username;
@@ -104,7 +104,7 @@ public:
 // ========================
 //      MESSAGE CLASS
 // ========================
-class Message // FINISHED
+class Message // sender, content
 {
 private:
     string sender; //   users = {"hazem", "rahma" , "salma"}
@@ -243,7 +243,7 @@ public:
 // ========================
 //       CHAT CLASS (BASE)
 // ========================
-class Chat // FINISHED
+class Chat // users , chatname
 {
 protected:
     vector<string> participants;
@@ -334,6 +334,11 @@ public:
         return result;
     }
 
+    string getName()
+    {
+        return chatName;
+    }
+
     void exportToFile(const string &filename) const // FuzetekProjectT2.exportToFile(Fuzetek);
     {
         // TODO: Implement export to file
@@ -369,7 +374,7 @@ public:
 // ========================
 //     PRIVATE CHAT CLASS
 // ========================
-class PrivateChat : public Chat // Menna , This needs alot of work I tried to make it better -Hazem
+class PrivateChat : public Chat // Menna , This needs some of work I tried to make it better -Hazem
 {
 private:
     string user1;
@@ -598,7 +603,7 @@ public:
             }
             else if (i == users.size() - 1)
             {
-                cout << "There's no user with that username!" << endl;
+                cout << "There's no user with that username!";
                 return;
             }
         }
@@ -613,6 +618,16 @@ public:
     void viewChats() const
     {
         // TODO: Implement chat viewing
+        cout << "Private Chats: " << endl;
+        for (int i = 0; i < chats.size(); i++)
+        {
+            // chats[i]->getName this needs work i want to print each name and make him choose the chat he wants to enter and then
+        }
+        cout << "Group Chats:" << endl;
+        for (int i = 0; i < chats.size(); i++)
+        {
+            // same here but for group chats
+        }
     }
 
     void logout()
