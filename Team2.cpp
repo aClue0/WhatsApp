@@ -405,7 +405,10 @@ public:
         admins.push_back(newAdmin); // Hazem did this
     }
 
-    bool removeParticipant(const string &admin, const string &userToRemove)
+/* function checks if the adimn is in the vector 
+if he is acutally an admin then it search for the participant to remove */
+
+    bool removeParticipant(const string &admin, const string &userToRemove) 
     {
         // TODO: Implement remove participant
         bool is_admin= false;
@@ -443,23 +446,49 @@ public:
     bool isAdmin(string username) const
     {
         // TODO: Implement admin check
+         for(const auto& ad : admins)
+        {
+            if(ad == username)
+            {
+                return  true;
+              
+            }
+        }
         return false;
     }
 
     bool isParticipant(string username) const
     {
         // TODO: Implement participant check
+        for(const auto& p : participants)
+        {
+            if(p == username)
+            {
+                return  true;
+              
+            }
+        }
         return false;
     }
 
     void setDescription(string desc)
     {
         // TODO: Implement set description
+        description = desc;
     }
 
     void displayChat() const override
     {
         // TODO: Implement group chat display
+        cout << "Group Chat: " << chatName << endl;
+        cout << "Description: " << description << endl;
+        cout << "-------------------------------------"<<endl;
+
+        for(const auto& msg : messages)
+        {
+            msg.display();
+        }
+
     }
 
     void sendJoinRequest(const string &username)
