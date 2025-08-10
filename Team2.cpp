@@ -439,8 +439,8 @@ public:
         }
     }
 
-    void showTypingIndicator(const string &username) const
-    { // added again - howa kan ra7 feen ?? -salma
+    void showTypingIndicator(const string &username) const// added again - howa kan ra7 feen ?? -salma
+    { 
         // TODO: Implement typing indicator
         cout << username << " is typing..." << endl;
     }
