@@ -24,6 +24,7 @@ public:
         username = "";
         password = "";
         phoneNumber = "";
+        status = "Offline";
     }
 
     User(string uname, string pwd, string phone) // User Hazem("0clue" , "1234" , "01205417173");
@@ -32,6 +33,7 @@ public:
         username = uname;
         password = pwd;
         phoneNumber = phone;
+        status = "Offline"; // offline untill user login -salma
     }
 
     string getUsername() const
@@ -62,6 +64,10 @@ public:
     {
         // TODO: Implement setter
         status = newStatus;
+        if (newStatus == "Offline")
+        { // makes sure to update the lastseen when user goes offline
+            updateLastSeen();
+        }
     }
 
     void setPhoneNumber(string phone)
@@ -122,6 +128,7 @@ public:
         timestamp = "";
         status = "Sent";
         replyTo = nullptr;
+        updateTimestamp();
     }
 
     Message(string sndr, string cntnt)
@@ -129,8 +136,9 @@ public:
         // TODO: Implement parameterized constructor
         sender = sndr;
         content = cntnt;
-        updateTimestamp();
         status = "Sent";
+        replyTo = nullptr;
+        updateTimestamp();
     }
 
     string getContent() const
@@ -166,6 +174,7 @@ public:
     void setContent(string cntnt)
     {
         content = cntnt;
+        updateTimestamp(); // need to Update timestamp when message is edited -salma
     }
 
     void setStatus(string newStatus)
@@ -180,14 +189,28 @@ public:
         replyTo = msg;
     }
 
-    void updateTimestamp()
+    void updateTimestamp() // choose a format
     {
+        /*
+        this give the time in the format ex. Sun Aug 10 15:42:33 2025
+         time_t now = time(0);
+         timestamp = ctime(&now);
+         if (!timestamp.empty() && timestamp.back() == '\n')
+         {
+             timestamp.pop_back();
+         }*/
+
+        // this gives a format  ex. 15:42 -salma
         time_t now = time(0);
-        timestamp = ctime(&now);
-        if (!timestamp.empty() && timestamp.back() == '\n')
-        {
-            timestamp.pop_back();
-        }
+        struct tm *time = localtime(&now); // tm pre defined struct in ctime , pointer as localtime returns a pointer
+        char buffer[6];
+        snprintf(buffer, sizeof(buffer), "%02d:%02d", time->tm_hour, time->tm_min);
+        timestamp = buffer;
+
+        /*snprintf formats and write data to a string
+        takes pointer of the arry, size to prevent overflow,
+        string format, and what is going to be formated
+        --"%02d:%02d" format so integer would be at least 2 digits, pad with zeros*/
     }
 
     void display() const
@@ -200,13 +223,13 @@ public:
                  << " \" " << replyTo->getContent() << " \" " << endl;
             cout << endl
                  << content << endl
-                 << timestamp << endl;
+                 << "[" << timestamp << "]" << endl;
         }
         else
         {
             cout << sender << endl
                  << content << endl
-                 << timestamp << endl;
+                 << "[" << timestamp << "]" << endl;
         }
     }
 
@@ -256,7 +279,7 @@ public:
         // TODO: Implement default constructor
         participants = {};
         messages = {};
-        chatName = {};
+        chatName = "";
     }
 
     Chat(vector<string> users, string name)
@@ -270,6 +293,7 @@ public:
     {
         // TODO: Implement message addition
         messages.push_back(msg);
+        messages.back().setStatus("Delivered"); // update status as msg is now in sys -salma
     }
 
     bool deleteMessage(int index, const string &username)
@@ -307,13 +331,17 @@ public:
     {
         // TODO: Implement chat display
         cout << "Chat " << chatName << endl;
+
+        /*if (messages.empty()) {
+            cout << "No messages yet." << endl;*/
+
         for (int i = 0; i < messages.size(); i++)
         {
             messages[i].display();
         }
     }
 
-    vector<Message> searchMessages(string keyword) const
+    vector<Message> searchMessages(string keyword) const // add helper function and make fun case insensitive ?
     {
         // TODO: Implement message search
         vector<Message> result;
@@ -345,10 +373,10 @@ public:
         }
 
         file << "Chat: " << chatName << endl;
-
+        file << "Members of the chat : " << endl;
         for (int i = 0; i < participants.size(); i++) // printing the members of the group
         {
-            file << "Members of the chat : " << participants[i];
+            file << participants[i];
 
             if (i != participants.size() - 1)
             {
@@ -361,8 +389,11 @@ public:
 
         for (int i = 0; i < messages.size(); i++)
         {
-            file << messages[i].getSender() << ", " << messages[i].getContent() << endl;
+            file << messages[i].getSender() << ", " << messages[i].getContent() << endl; // add timestamp?
         }
+
+        file.close();
+        cout << "Chat exported to " << filename << endl;
     }
 };
 
@@ -381,46 +412,10 @@ public:
         // TODO: Implement constructor
         user1 = u1;
         user2 = u2;
-        Chat thisChat({u1, u2}, "Private Chat");
-        cout << "Begin your chat with " << u2 << "!" << endl;
-        string input;
-
-        while (true)
-        {
-            cout << "Enter a message, or type \"D\" to delete a message, or \"E\" to edit a message, or \"exit\" to quit" << endl;
-            getline(cin, input);
-
-            if (input == "D")
-            {
-                cout << "Enter the index of the message you want to delete : " << endl;
-                int index;
-                cin >> index;
-                cin.ignore(); // Clear the newline after reading integer
-                deleteMessage(index, u1);
-            }
-            else if (input == "E")
-            {
-                int idx;
-                string content;
-                cout << "Enter the index of the message you want to edit : " << endl;
-                cin >> idx;
-                cin.ignore(); // Clear the newline after reading integer
-                cout << "Enter the content of the edited message :" << endl;
-                getline(cin, content);
-                editMessage(idx, content, u1);
-            }
-            else if (input == "exit")
-            {
-                cout << "You exited your chat with " << u2 << "!" << endl;
-                break;
-            }
-            else
-            {
-                Message thisMessage(u1, input);
-                addMessage(thisMessage);
-            }
-        }
+        // participants = {u1, u2};
+        // chatName = u1 + " and " + u2;
     }
+
     void sendMessage()
     {
         cout << user1 << "enter your message: " << endl;
@@ -432,12 +427,23 @@ public:
 
     void displayChat() const override
     {
-        cout << "Private Chat between " << user1 << " and " << user2 << endl;
+        cout << "Private Chat between " << user1 << " and " << user2 << endl
+             << endl;
+
+        /* if (messages.empty()) {
+            cout << "No messages yet. Start the conversation!" << endl;*/
+
         for (int i = 0; i < messages.size(); i++)
         {
             messages[i].display();
         }
-    }  
+    }
+
+    void showTypingIndicator(const string &username) const
+    { // added again - howa kan ra7 feen ?? -salma
+        // TODO: Implement typing indicator
+        cout << username << " is typing..." << endl;
+    }
 };
 
 
@@ -454,45 +460,145 @@ public:
     GroupChat(vector<string> users, string name, string creator)
     {
         // TODO: Implement constructor
+        participants = users;
+        chatName = name;
+        admins.push_back(creator);
+        description = "";
     }
 
     void addAdmin(string newAdmin)
     {
         // TODO: Implement add admin
-        admins.push_back(newAdmin); // Hazem did this
+        bool already_admin = isAdmin(newAdmin);
+        bool is_participant = isParticipant(newAdmin);
+
+        if (already_admin)
+        {
+            cout << newAdmin << " is already an admin" << endl;
+        }
+        else if (is_participant)
+        {
+            admins.push_back(newAdmin);
+            cout << newAdmin << " is now an admin of " << chatName << endl;
+        }
+        else
+        {
+            cout << newAdmin << " is not a participant of the group" << endl;
+        }
     }
+
+    /* function checks if the adimn is in the vector
+    if he is acutally an admin then it search for the participant to remove */
 
     bool removeParticipant(const string &admin, const string &userToRemove)
     {
         // TODO: Implement remove participant
-        return false;
+        bool is_admin = isAdmin(admin);
+        bool is_participant = isParticipant(userToRemove);
+        bool was_admin = isAdmin(userToRemove);
+
+        if (!is_admin)
+        {
+            cout << admin << " is not an admin of this group" << endl;
+            return false;
+        }
+        else if (admin == userToRemove)
+        {
+            cout << "Admins can't remove themselves" << endl;
+            return false;
+        }
+
+        if (!is_participant)
+        {
+            cout << userToRemove << " is not in the group chat" << endl;
+            return false;
+        }
+
+        for (int i = 0; i < participants.size(); i++)
+        {
+            if (userToRemove == participants[i])
+            {
+                participants.erase(participants.begin() + i);
+                break;
+            }
+        }
+
+        if (was_admin)
+        {
+            for (int j = 0; j < admins.size(); j++)
+            {
+                if (userToRemove == admins[j])
+                {
+                    admins.erase(admins.begin() + j);
+                    break;
+                }
+            }
+        }
+
+        cout << admin << " Has Removed " << userToRemove << " From The Group" << endl;
+
+        return true;
     }
 
     bool isAdmin(string username) const
     {
         // TODO: Implement admin check
+        for (const auto &ad : admins)
+        {
+            if (ad == username)
+            {
+                return true;
+            }
+        }
         return false;
     }
 
     bool isParticipant(string username) const
     {
         // TODO: Implement participant check
+        for (const auto &p : participants)
+        {
+            if (p == username)
+            {
+                return true;
+            }
+        }
         return false;
     }
 
     void setDescription(string desc)
     {
         // TODO: Implement set description
+        description = desc;
     }
 
     void displayChat() const override
     {
         // TODO: Implement group chat display
+        cout << "Group Chat: " << chatName << endl;
+        cout << "Description: " << description << endl;
+        cout << "-------------------------------------" << endl;
+        if (messages.empty())
+        {
+            cout << "No messages yet." << endl;
+        }
+        else
+        {
+            for (const auto &msg : messages)
+            {
+                msg.display();
+            }
+        }
     }
 
     void sendJoinRequest(const string &username)
     {
         // TODO: Implement join request
+        if (!isParticipant(username))
+        {
+            participants.push_back(username);
+            cout << username << " has joined " << chatName << endl;
+        }
     }
 };
 
