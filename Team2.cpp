@@ -110,7 +110,7 @@ public:
 // ========================
 //      MESSAGE CLASS
 // ========================
-class Message // sender, content
+class Message // FINISHED
 {
 private:
     string sender; //   users = {"hazem", "rahma" , "salma"}
@@ -266,7 +266,7 @@ public:
 // ========================
 //       CHAT CLASS (BASE)
 // ========================
-class Chat // users , chatname
+class Chat // FINISHED
 {
 protected:
     vector<string> participants;
@@ -332,12 +332,16 @@ public:
         // TODO: Implement chat display
         cout << "Chat " << chatName << endl;
 
-        /*if (messages.empty()) {
-            cout << "No messages yet." << endl;*/
-
-        for (int i = 0; i < messages.size(); i++)
+        if (messages.empty())
         {
-            messages[i].display();
+            cout << "No messages yet." << endl;
+        }
+        else
+        {
+            for (int i = 0; i < messages.size(); i++)
+            {
+                messages[i].display();
+            }
         }
     }
 
@@ -360,11 +364,6 @@ public:
             cout << "No messages has the keyword : " << keyword << endl;
         }
         return result;
-    }
-
-    string getName()
-    {
-        return chatName;
     }
 
     void exportToFile(const string &filename) const // FuzetekProjectT2.exportToFile(Fuzetek);
@@ -400,12 +399,17 @@ public:
         file.close();
         cout << "Chat exported to " << filename << endl;
     }
+
+    string getName()
+    {
+        return chatName;
+    }
 };
 
 // ========================
 //     PRIVATE CHAT CLASS
 // ========================
-class PrivateChat : public Chat // Menna , This needs some of work I tried to make it better -Hazem
+class PrivateChat : public Chat // Menna , This needs alot of work I tried to make it better -Hazem
 {
 private:
     string user1;
@@ -421,14 +425,21 @@ public:
         chatName = u1 + " and " + u2;
     }
 
-    void sendMessage()
-    {
-        cout << user1 << "enter your message: " << endl;
-        string content;
-        getline(cin, content);
-        Message msg(user1, content);
-        addMessage(msg);
-    }
+    /*   void sendMessage() redundent message is sent when its is added never called
+       {
+           cout << user1 << "enter your message: " << endl;
+           string content ,emoji;
+           getline(cin, content);
+
+           Message msg(user1, content);
+
+           cout << "To add an emoji please choose from the following \n"
+                << "{smile,shy,angry,heart,cry,none}" << endl;
+           cin >> emoji;
+
+           msg.addEmoji(emoji);
+           addMessage(msg);
+       }*/
 
     void displayChat() const override
     {
@@ -446,7 +457,7 @@ public:
         }
     }
 
-    void showTypingIndicator(const string &username) const
+    void showTypingIndicator(const string &username) const // added again
     {
         // TODO: Implement typing indicator
         cout << username << " is typing..." << endl;
@@ -499,7 +510,51 @@ public:
     bool removeParticipant(const string &admin, const string &userToRemove)
     {
         // TODO: Implement remove participant
-        return false;
+        bool is_admin = isAdmin(admin);
+        bool is_participant = isParticipant(userToRemove);
+        bool was_admin = isAdmin(userToRemove);
+
+        if (!is_admin)
+        {
+            cout << admin << " is not an admin of this group" << endl;
+            return false;
+        }
+        else if (admin == userToRemove)
+        {
+            cout << "Admins can't remove themselves" << endl;
+            return false;
+        }
+
+        if (!is_participant)
+        {
+            cout << userToRemove << " is not in the group chat" << endl;
+            return false;
+        }
+
+        for (int i = 0; i < participants.size(); i++)
+        {
+            if (userToRemove == participants[i])
+            {
+                participants.erase(participants.begin() + i);
+                break;
+            }
+        }
+
+        if (was_admin)
+        {
+            for (int j = 0; j < admins.size(); j++)
+            {
+                if (userToRemove == admins[j])
+                {
+                    admins.erase(admins.begin() + j);
+                    break;
+                }
+            }
+        }
+
+        cout << admin << " Has Removed " << userToRemove << " From The Group" << endl;
+
+        return true;
     }
 
     bool isAdmin(string username) const
@@ -600,11 +655,23 @@ private:
     string getCurrentUsername() const
     {
         // TODO: Implement get current user
+        if (currentUserIndex != -1)
+        {
+            return users[currentUserIndex].getUsername();
+        }
         return "";
     }
 
 public:
     WhatsApp() : currentUserIndex(-1) {}
+
+    ~WhatsApp() // Destructor
+    {
+        for (int i = 0; i < chats.size(); i++)
+        {
+            delete chats[i];
+        }
+    }
 
     void signUp()
     {
@@ -635,15 +702,15 @@ public:
         getline(cin, username);
         cout << "Enter your password : " << endl;
         getline(cin, password);
-        for (int i = 0; i < users.size(); i++)
+
+        int userIndex = findUserIndex(username);
+
+        if (userIndex != -1 && users[userIndex].checkPassword(password))
         {
-            if ((users[i].getUsername() == username) && users[i].checkPassword(password))
-            {
-                cout << "Login Successful!" << endl;
-                currentUserIndex = i;
-                users[i].setStatus("online");
-                return;
-            }
+            cout << "Login Successful!" << endl;
+            currentUserIndex = userIndex;
+            users[userIndex].setStatus("online");
+            return;
         }
         cout << "Username or Password is not correct!" << endl;
     }
@@ -656,37 +723,132 @@ public:
         string u2;
         cout << "Who do you want to chat with? " << endl;
         getline(cin, u2);
-        bool exists = false;
+
+        // Check if target user exists
+        /* bool userFound = false;
+         for (int i = 0; i < users.size(); i++)
+         {
+             if (users[i].getUsername() == u2)
+             {
+                 userFound = true;
+                 break;
+             }
+         }
+         if (!userFound)
+         {
+             cout << "There's no user with that username!" << endl;
+             return;
+         }*/
+
+        if (findUserIndex(u2) == -1)
+        {
+            cout << "There's no user with that username!" << endl;
+            return;
+        }
+
+        // Try to find an existing private chat
+        Chat *selectedChat = nullptr;
         for (int i = 0; i < chats.size(); i++)
         {
-            if (chats[i]->getName() == u1 + " and " + u2)
+            if (chats[i]->getName() == u1 + " and " + u2 || chats[i]->getName() == u2 + " and " + u1)
             {
-                exists = true;
+                selectedChat = chats[i];
+                break;
             }
         }
 
-        if (!exists)
+        // If it doesn't exist, create it
+        if (!selectedChat)
         {
-            for (int i = 0; i < users.size(); i++)
-            {
-                if (users[i].getUsername() == u2)
-                {
-                    break;
-                }
-                else if (i == users.size() - 1)
-                {
-                    cout << "There's no user with that username!";
-                    return;
-                }
-            }
             PrivateChat *thisChat = new PrivateChat(u1, u2);
             chats.push_back(thisChat);
+            selectedChat = thisChat;
+            cout << "Private chat created successfully!" << endl;
+        }
+
+        bool in_chat = true;
+        while (in_chat)
+        {
+            selectedChat->displayChat();
+            cout << "\n1. Send Message\n2. Search Messages\n3.Edit Messages\n"
+                 << "4. Delete Messages\n5. Back\nChoice: ";
+            int choice;
+            cin >> choice;
+            cin.ignore();
+
+            switch (choice)
+            {
+            case 1:
+            {
+                string content,emoji;
+                cout << "Enter your message: ";
+                getline(cin, content);
+                Message msg(u1, content);
+                cout << "To add an emoji please choose from the following \n"
+                     << "{smile,shy,angry,heart,cry,none}" << endl;
+                cin >> emoji;
+
+                msg.addEmoji(emoji);
+                selectedChat->addMessage(msg);
+
+                break;
+            }
+            case 2:
+            {
+                string key;
+                cout << "Entry Keyword: "<<endl;
+                getline(cin,key);
+                vector<Message> resluts = selectedChat ->searchMessages(key);
+                for(const auto& msg: resluts)
+                {
+                    msg.display();
+                }
+                break;
+            }
+
+            case 3:
+            {
+                int index;
+                string new_content;
+                cout << "Enter Index of message to be Edited: "<<endl;
+                cin >> index;
+
+                cout<< "Enter New Edited Message: "<<endl;
+                getline(cin,new_content);
+
+                selectedChat->editMessage(index,new_content,u1);
+                break;
+
+
+            }
+            case 4:
+            {
+
+                int index;
+                string new_content;
+                cout << "Enter Index of message to be deleted: "<<endl;
+                cin >> index;
+                if(!(selectedChat->deleteMessage(index,u1)))
+                {
+                    cout << "No message with this index is found "<<endl;
+                }
+                break;
+            }
+            case 5:
+            {
+                in_chat=false;
+            }
+            default:
+                break;
+            }
         }
     }
 
     void createGroup()
     {
         // TODO: Implement group creation
+        //hi
+        
     }
 
     void viewChats() const
