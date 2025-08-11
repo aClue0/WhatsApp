@@ -373,6 +373,45 @@ public:
     void createGroup()
     {
         // TODO: Implement group creation
+         if(! isLoggedIn()){
+            cout<<"login"<<endl;
+            return;
+        }
+         string groupname;
+        cout<<"create group"<<endl;
+        cout<<"inter group name"<<endl;
+        cin.ignore();
+        getline(cin,groupname);
+
+          vector<string> members;
+       string currentUser = getCurrentUsername();
+       members.push_back(currentUser);
+
+        int nummembers;
+       cout<<"add nummembers"<<endl;
+       cin>>" nummembers";
+
+        for( int i = 0 ; i< nummembers; i++){
+        string memberName;
+        cout<<"enter memberName"<< i+1<<":"<<endl;
+        cin>>"memberName";
+
+        if (findUserIndex(memberName) != -1 && memberName != currentUser){
+            members.push_back(memberName);
+        }
+        else{
+            cout<<" member not found ";    
+           }
+           GroupChat* newgroup = new
+           GroupChat(members,groupname,currentUser );
+           chats.push_back(newgroup);
+
+           cout<<"group has been created"<< groupname <<endl;
+
+
+
+        }
+
     }
 
     void viewChats() const
