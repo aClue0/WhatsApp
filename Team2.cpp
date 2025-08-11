@@ -245,7 +245,7 @@ public:
         }
         else if (emojiCode == "cry")
         {
-            content += " :\")";
+            content += " ToT";
         }
         else if (emojiCode == "none")
         {
@@ -321,7 +321,7 @@ public:
         return false;
     }
 
-    void showTypingIndicator(const string &username) const // added again
+    void showTypingIndicator(const string &username) const
     {
         // TODO: Implement typing indicator
         cout << username << " is typing..." << endl;
@@ -840,7 +840,8 @@ public:
         cout << "Chats: " << endl;
         for (int i = 0; i < chats.size(); i++)
         {
-            // chats[i]->getName this needs work i want to print each name and make him choose the chat he wants to enter and thend
+            cout << i << "- " << chats[i]->getName() << endl;
+            ;
         }
     }
 
