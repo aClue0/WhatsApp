@@ -1,5 +1,5 @@
-﻿#include <iostream> // check line 313
-#include <vector>
+﻿#include <iostream>
+#include <vector> // do reply to in send message and typing indicator
 #include <string>
 #include <ctime>
 #include <fstream>
@@ -191,15 +191,6 @@ public:
 
     void updateTimestamp() // choose a format
     {
-        /*
-        this give the time in the format ex. Sun Aug 10 15:42:33 2025
-         time_t now = time(0);
-         timestamp = ctime(&now);
-         if (!timestamp.empty() && timestamp.back() == '\n')
-         {
-             timestamp.pop_back();
-         }*/
-
         // this gives a format  ex. 15:42 -salma
         time_t now = time(0);
         struct tm *time = localtime(&now); // tm pre defined struct in ctime , pointer as localtime returns a pointer
@@ -207,10 +198,10 @@ public:
         snprintf(buffer, sizeof(buffer), "%02d:%02d", time->tm_hour, time->tm_min);
         timestamp = buffer;
 
-        /*snprintf formats and write data to a string
+        /* snprintf formats and write data to a string
         takes pointer of the arry, size to prevent overflow,
         string format, and what is going to be formated
-        --"%02d:%02d" format so integer would be at least 2 digits, pad with zeros*/
+        --"%02d:%02d" format so integer would be at least 2 digits, pad with zeros */
     }
 
     void display() const
@@ -219,17 +210,17 @@ public:
         if (replyTo != nullptr)
         {
             cout << sender << endl;
-            cout << "replied to : " << replyTo->getSender() << endl
+            cout << "replied to : " << replyTo->getSender() << ": "
                  << " \" " << replyTo->getContent() << " \" " << endl;
-            cout << endl
-                 << content << endl
+
+            cout << content
                  << "[" << timestamp << "]" << endl;
         }
         else
         {
-            cout << sender << endl
-                 << content << endl
-                 << "[" << timestamp << "]" << endl;
+            cout << sender << ": "
+                 << content
+                 << " [" << timestamp << "]" << endl;
         }
     }
 
@@ -238,27 +229,31 @@ public:
         // TODO: Implement emoji support
         if (emojiCode == "smile")
         {
-            content += "😄";
+            content += " :)";
         }
         else if (emojiCode == "shy")
         {
-            content += "🤭";
+            content += " :\"";
         }
         else if (emojiCode == "angry")
         {
-            content += "😡";
+            content += " >:(";
         }
         else if (emojiCode == "heart")
         {
-            content += "❤";
+            content += " <3";
         }
         else if (emojiCode == "cry")
         {
-            content += "😭";
+            content += " :\")";
+        }
+        else if (emojiCode == "none")
+        {
+            content += "";
         }
         else
         {
-            content += "Not defined";
+            content += " Not defined";
         }
     }
 };
@@ -272,6 +267,16 @@ protected:
     vector<string> participants;
     vector<Message> messages;
     string chatName;
+
+    string toSmall(string message) const
+    {
+        string result;
+        for (int i = 0; i < message.size(); i++)
+        {
+            result += tolower(message[i]);
+        }
+        return result;
+    }
 
 public:
     Chat()
@@ -305,14 +310,28 @@ public:
             cout << "Message deleted successfully" << endl;
             return true;
         }
+        else if ((index >= 0 && index < messages.size()))
+        {
+            cout << "Invalid Index!" << endl;
+        }
+        else if (messages[index].getSender() == username)
+        {
+            cout << "You didn't send this message!" << endl;
+        }
         return false;
+    }
+
+    void showTypingIndicator(const string &username) const // added again
+    {
+        // TODO: Implement typing indicator
+        cout << username << " is typing..." << endl;
     }
 
     void editMessage(int idx, string cntnt, const string &username)
     {
         if (idx < 0 || idx >= messages.size())
         {
-            cout << "No index with that number found!" << endl;
+            cout << "No message with that index found!" << endl;
             return;
         }
         else if (messages[idx].getSender() != username)
@@ -323,6 +342,11 @@ public:
         else
         {
             messages[idx].setContent(cntnt);
+            string emoji;
+            cout << "To add an emoji please choose from the following \n"
+                 << "{smile,shy,angry,heart,cry,none}" << endl;
+            cin >> emoji;
+            messages[idx].addEmoji(emoji);
             cout << "Message edited successfully" << endl;
         }
     }
@@ -350,10 +374,11 @@ public:
         // TODO: Implement message search
         vector<Message> result;
         bool found = false;
+        string smallKeyword = toSmall(keyword);
         for (int i = 0; i < messages.size(); i++)
         {
-
-            if (messages[i].getContent().find(keyword) != string::npos)
+            string smallContent = toSmall(messages[i].getContent());
+            if (smallContent.find(smallKeyword) != string::npos)
             {
                 result.push_back(messages[i]);
                 found = true;
@@ -409,7 +434,7 @@ public:
 // ========================
 //     PRIVATE CHAT CLASS
 // ========================
-class PrivateChat : public Chat // Menna , This needs alot of work I tried to make it better -Hazem
+class PrivateChat : public Chat // Menna
 {
 private:
     string user1;
@@ -425,25 +450,9 @@ public:
         chatName = u1 + " and " + u2;
     }
 
-    /*   void sendMessage() redundent message is sent when its is added never called
-       {
-           cout << user1 << "enter your message: " << endl;
-           string content ,emoji;
-           getline(cin, content);
-
-           Message msg(user1, content);
-
-           cout << "To add an emoji please choose from the following \n"
-                << "{smile,shy,angry,heart,cry,none}" << endl;
-           cin >> emoji;
-
-           msg.addEmoji(emoji);
-           addMessage(msg);
-       }*/
-
     void displayChat() const override
     {
-        cout << chatName << endl;
+        cout << "\n------------------ " << chatName << " ------------------" << endl;
         if (messages.empty())
         {
             cout << "No messages yet. Start the conversation!" << endl;
@@ -455,12 +464,6 @@ public:
                 messages[i].display();
             }
         }
-    }
-
-    void showTypingIndicator(const string &username) const // added again
-    {
-        // TODO: Implement typing indicator
-        cout << username << " is typing..." << endl;
     }
 };
 
@@ -707,7 +710,7 @@ public:
 
         if (userIndex != -1 && users[userIndex].checkPassword(password))
         {
-            cout << "Login Successful!" << endl;
+            cout << "\n------------------ Login Successful! ------------------" << endl;
             currentUserIndex = userIndex;
             users[userIndex].setStatus("online");
             return;
@@ -721,24 +724,8 @@ public:
         cin.ignore();
         string u1 = users[currentUserIndex].getUsername();
         string u2;
-        cout << "Who do you want to chat with? " << endl;
+        cout << "\nWho do you want to chat with? ";
         getline(cin, u2);
-
-        // Check if target user exists
-        /* bool userFound = false;
-         for (int i = 0; i < users.size(); i++)
-         {
-             if (users[i].getUsername() == u2)
-             {
-                 userFound = true;
-                 break;
-             }
-         }
-         if (!userFound)
-         {
-             cout << "There's no user with that username!" << endl;
-             return;
-         }*/
 
         if (findUserIndex(u2) == -1)
         {
@@ -763,31 +750,31 @@ public:
             PrivateChat *thisChat = new PrivateChat(u1, u2);
             chats.push_back(thisChat);
             selectedChat = thisChat;
-            cout << "Private chat created successfully!" << endl;
+            cout << "\n------------------ Private chat created successfully! ------------------\n";
         }
 
         bool in_chat = true;
         while (in_chat)
         {
             selectedChat->displayChat();
-            cout << "\n1. Send Message\n2. Search Messages\n3.Edit Messages\n"
+            cout << "\n1. Send Message\n2. Search Messages\n3. Edit Messages\n"
                  << "4. Delete Messages\n5. Back\nChoice: ";
-            int choice;
-            cin >> choice;
+            string input;
+            cin >> input;
             cin.ignore();
-
+            int choice = stoi(input);
             switch (choice)
             {
             case 1:
             {
-                string content,emoji;
+                selectedChat->showTypingIndicator(u1);
+                string content, emoji;
                 cout << "Enter your message: ";
                 getline(cin, content);
                 Message msg(u1, content);
                 cout << "To add an emoji please choose from the following \n"
                      << "{smile,shy,angry,heart,cry,none}" << endl;
                 cin >> emoji;
-
                 msg.addEmoji(emoji);
                 selectedChat->addMessage(msg);
 
@@ -796,10 +783,10 @@ public:
             case 2:
             {
                 string key;
-                cout << "Entry Keyword: "<<endl;
-                getline(cin,key);
-                vector<Message> resluts = selectedChat ->searchMessages(key);
-                for(const auto& msg: resluts)
+                cout << "Entry Keyword: " << endl;
+                getline(cin, key);
+                vector<Message> resluts = selectedChat->searchMessages(key);
+                for (const auto &msg : resluts)
                 {
                     msg.display();
                 }
@@ -810,35 +797,32 @@ public:
             {
                 int index;
                 string new_content;
-                cout << "Enter Index of message to be Edited: "<<endl;
+                cout << "Enter Index of message to be Edited: " << endl;
                 cin >> index;
+                cin.ignore();
 
-                cout<< "Enter New Edited Message: "<<endl;
-                getline(cin,new_content);
+                cout << "Enter New Edited Message: " << endl;
+                getline(cin, new_content);
 
-                selectedChat->editMessage(index,new_content,u1);
+                selectedChat->editMessage(index, new_content, u1);
                 break;
-
-
             }
             case 4:
             {
 
                 int index;
                 string new_content;
-                cout << "Enter Index of message to be deleted: "<<endl;
+                cout << "Enter Index of message to be deleted: " << endl;
                 cin >> index;
-                if(!(selectedChat->deleteMessage(index,u1)))
-                {
-                    cout << "No message with this index is found "<<endl;
-                }
+                selectedChat->deleteMessage(index, u1);
                 break;
             }
             case 5:
             {
-                in_chat=false;
+                in_chat = false;
             }
             default:
+                cout << "Enter a valid Choice!" << endl;
                 break;
             }
         }
@@ -847,8 +831,7 @@ public:
     void createGroup()
     {
         // TODO: Implement group creation
-        //hi
-        
+        // hi
     }
 
     void viewChats() const
