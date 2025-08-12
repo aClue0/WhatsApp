@@ -656,7 +656,7 @@ class WhatsApp // Habiba
 {
 private:
     vector<User> users;
-    vector<Chat *> chats;
+    static vector<Chat *> chats; // static so all users share the same chats they are in
     int currentUserIndex;
 
     int findUserIndex(string username) const
@@ -716,17 +716,17 @@ private:
         }
 
         string line;
-        while (getline(file, line)) // while will read the file line by line 
+        while (getline(file, line)) // while will read the file line by line
         {
             if (line.empty())
                 continue;
-// turn string into a stream to be read from 
-// sstream is a string lib like cin/cout but instead of a terminal it read from and write to a string in memory.  
-            stringstream ss(line); 
+            // turn string into a stream to be read from
+            // sstream is a string lib like cin/cout but instead of a terminal it read from and write to a string in memory.
+            stringstream ss(line);
             string name, pass, phone;
 
             // spilt the string by ,
-            getline(ss, name, ','); 
+            getline(ss, name, ',');
             getline(ss, pass, ',');
             getline(ss, phone, ',');
 
@@ -739,7 +739,8 @@ private:
     }
 
 public:
-    WhatsApp() : currentUserIndex(-1) {
+    WhatsApp() : currentUserIndex(-1)
+    {
         loadFromFile();
     }
 
@@ -771,7 +772,6 @@ public:
         users.push_back(thisUser);
         saveToFile(thisUser);
         cout << "\n------------------Signup successful! You can now log in ------------------" << endl;
-
     }
 
     void login()
@@ -1124,17 +1124,39 @@ public:
     void viewChats() const
     {
         // TODO: Implement chat viewing
-        if (chats.size() == 0)
+        vector<Chat *> userChats;
+        string currentUser = getCurrentUsername();
+
+        for (Chat *chat : chats)
+        {
+            GroupChat *groupChat = dynamic_cast<GroupChat *>(chat);
+            if (groupChat) // if that chat is group chat
+            {
+                if (groupChat->isParticipant(currentUser)) // if the user is a participant
+                {
+                    userChats.push_back(chat); // add it in his chats
+                }
+            }
+            else // if that chat is private chat
+            {
+                string chatName = chat->getName();
+                if (chatName.find(currentUser) != string::npos) // if the name has the user name in it
+                {
+                    userChats.push_back(chat); // add it in his chats
+                }
+            }
+        }
+
+        if (userChats.size() == 0)
         {
             cout << "No Chats yet, Try to Chat with someone!" << endl;
         }
         else
         {
-            cout << "Chats: " << endl;
-            for (int i = 0; i < chats.size(); i++)
+            cout << "Your Chats: " << endl;
+            for (int i = 0; i < userChats.size(); i++)
             {
-                cout << i << "- " << chats[i]->getName() << endl;
-                ;
+                cout << i << "- " << userChats[i]->getName() << endl;
             }
         }
     }
@@ -1186,6 +1208,9 @@ public:
 // ========================
 //          MAIN
 // ========================
+
+// static definition
+vector<Chat *> WhatsApp::chats;
 int main()
 {
     WhatsApp whatsapp;
