@@ -1,12 +1,14 @@
 ﻿#include <iostream>
 #include <vector> // do reply to in send message and typing indicator
 #include <string>
-#include <ctime> // Hi have a good day
+#include <ctime>
 #include <fstream>
+#include <sstream> // for stringstream
+#include <filesystem>
 using namespace std;
 
 // ========================
-//       USER CLASS
+//       USER CLASS   habiba
 // ========================
 class User // username,password,phone
 {
@@ -34,6 +36,11 @@ public:
         password = pwd;
         phoneNumber = phone;
         status = "Offline"; // offline untill user login -salma
+    }
+
+    string getPassword() const
+    {
+        return password;
     }
 
     string getUsername() const
@@ -214,13 +221,13 @@ public:
                  << " \" " << replyTo->getContent() << " \" " << endl;
 
             cout << content
-                 << "[" << timestamp << "]" << endl;
+                 << "[" << timestamp << "]" << "\t[" << status << "]" << endl;
         }
         else
         {
             cout << sender << ": "
                  << content
-                 << " [" << timestamp << "]" << endl;
+                 << " [" << timestamp << "]" << "\t[" << status << "]" << endl;
         }
     }
 
@@ -429,6 +436,17 @@ public:
     {
         return chatName;
     }
+
+    void markMessagesRead(const string &username) // need to change tha status of the message - salma
+    {
+        for (auto &msg : messages)
+        {
+            if (msg.getSender() != username && msg.getStatus() != "Read")
+            {
+                msg.setStatus("Read");
+            }
+        }
+    }
 };
 
 // ========================
@@ -619,6 +637,15 @@ public:
             participants.push_back(username);
             cout << username << " has joined " << chatName << endl;
         }
+        else
+        {
+            cout << username << " already in group." << endl;
+        }
+    }
+
+    vector<string> getAdmins()
+    {
+        return admins;
     }
 };
 
@@ -642,11 +669,13 @@ private:
                 return i;
             }
         }
+
         return -1;
     }
 
     bool isLoggedIn() const
     {
+
         // TODO: Implement login check
         if (currentUserIndex != -1 && users[currentUserIndex].getStatus() == "online")
         {
@@ -658,6 +687,7 @@ private:
     string getCurrentUsername() const
     {
         // TODO: Implement get current user
+
         if (currentUserIndex != -1)
         {
             return users[currentUserIndex].getUsername();
@@ -665,8 +695,53 @@ private:
         return "";
     }
 
+    void saveToFile(const User &user)
+    {
+        ofstream file("users.txt", ios::app); // opens in append mode
+        if (!file.is_open())
+        {
+            cout << "Error saving user to file.\n";
+            return;
+        }
+        file << user.getUsername() << "," << user.getPassword() << "," << user.getPhoneNumber() << "\n";
+        file.close();
+    }
+
+    void loadFromFile()
+    {
+        ifstream file("users.txt");
+        if (!file.is_open())
+        {
+            return;
+        }
+
+        string line;
+        while (getline(file, line)) // while will read the file line by line 
+        {
+            if (line.empty())
+                continue;
+// turn string into a stream to be read from 
+// sstream is a string lib like cin/cout but instead of a terminal it read from and write to a string in memory.  
+            stringstream ss(line); 
+            string name, pass, phone;
+
+            // spilt the string by ,
+            getline(ss, name, ','); 
+            getline(ss, pass, ',');
+            getline(ss, phone, ',');
+
+            if (!name.empty() && !pass.empty() && !phone.empty())
+            {
+                users.push_back(User(name, pass, phone));
+            }
+        }
+        file.close();
+    }
+
 public:
-    WhatsApp() : currentUserIndex(-1) {}
+    WhatsApp() : currentUserIndex(-1) {
+        loadFromFile();
+    }
 
     ~WhatsApp() // Destructor
     {
@@ -694,6 +769,9 @@ public:
         getline(cin, phone);
         User thisUser(username, password, phone);
         users.push_back(thisUser);
+        saveToFile(thisUser);
+        cout << "\n------------------Signup successful! You can now log in ------------------" << endl;
+
     }
 
     void login()
@@ -722,7 +800,7 @@ public:
     {
         // TODO: Implement private chat creation
         cin.ignore();
-        string u1 = users[currentUserIndex].getUsername();
+        string u1 = getCurrentUsername();
         string u2;
         cout << "\nWho do you want to chat with? ";
         getline(cin, u2);
@@ -756,6 +834,7 @@ public:
         bool in_chat = true;
         while (in_chat)
         {
+            selectedChat->markMessagesRead(getCurrentUsername());
             selectedChat->displayChat();
             cout << "\n1. Send Message\n2. Search Messages\n3. Edit Messages\n"
                  << "4. Delete Messages\n5. Back\nChoice: ";
@@ -785,8 +864,8 @@ public:
                 string key;
                 cout << "Entry Keyword: " << endl;
                 getline(cin, key);
-                vector<Message> results = selectedChat->searchMessages(key);
-                for (const auto &msg : results)
+                vector<Message> resluts = selectedChat->searchMessages(key);
+                for (const auto &msg : resluts)
                 {
                     msg.display();
                 }
@@ -870,7 +949,8 @@ public:
 
                 if (input != -1 && (input > 0 && input < users.size()) & isAddingMember & !exist) // if your index is right
                 {
-                    AddedMembers.push_back(users[input].getUsername());
+                    AddedMembers.push_back(thisUser);
+                    cout << thisUser << " added to group." << endl;
                 }
             }
         }
@@ -878,7 +958,7 @@ public:
         cout << endl
              << "------------------ Name your Group Chat! ------------------" << endl;
 
-        string groupName = {};   // ---------------------- i dont think that I need to check if there is a group chat with the same requirements or not because there may be but i want to create another one with another name or smt
+        string groupName = "";   // ---------------------- i dont think that I need to check if there is a group chat with the same requirements or not because there may be but i want to create another one with another name or smt
         getline(cin, groupName); // enter your group name
 
         GroupChat *thisGroup = new GroupChat(AddedMembers, groupName, u1 /*Creator*/); // makes group chat
@@ -893,6 +973,8 @@ public:
         bool in_groupchat = true;
         while (in_groupchat)
         {
+            thisGroup->markMessagesRead(getCurrentUsername());
+
             thisGroup->displayChat();
             cout << "\n1. Send Message\n2. Search Messages\n3. Edit Messages\n"
                  << "4. Delete Messages\n";
@@ -964,14 +1046,32 @@ public:
             // ---------------------------------- TODO IMPLEMENT THE 5 6 7 CASES : ADD ADMIN, ADD PARTICIPANTS ,REMOVE PARTICIPANTS
             case 5:
             {
+                cout << "Enter username to grant admin: ";
+                string username;
+                getline(cin, username);
+                thisGroup->addAdmin(username);
+
                 break;
             }
             case 6:
             {
+                cout << "Enter username to add to group: ";
+                string username;
+                getline(cin, username);
+                if (findUserIndex(username) == -1)
+                {
+                    cout << "User not found ." << endl;
+                    break;
+                }
+                thisGroup->sendJoinRequest(username);
                 break;
             }
             case 7:
             {
+                cout << "Enter username to remove from group: ";
+                string username;
+                getline(cin, username);
+                thisGroup->removeParticipant(u1, username);
                 break;
             }
             case 8:
@@ -984,7 +1084,7 @@ public:
             }
         }
         /* Habiba's Code :
-         if(! isLoggedIn()){
+     if(! isLoggedIn()){
      cout<<"login"<<endl;
         return;
         }
@@ -1000,12 +1100,12 @@ public:
 
         int nummembers;
        cout<<"add nummembers"<<endl;
-       cin>>" nummembers";
+       cin >> nummembers;
 
         for( int i = 0 ; i< nummembers; i++){
         string memberName;
         cout<<"enter memberName"<< i+1<<":"<<endl;
-        cin>>"memberName";
+        cin >>memberName;
 
         if (findUserIndex(memberName) != -1 && memberName != currentUser){
             members.push_back(memberName);
