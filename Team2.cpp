@@ -830,81 +830,7 @@ public:
             selectedChat = thisChat;
             cout << "\n------------------ Private chat created successfully! ------------------\n";
         }
-
-        bool in_chat = true;
-        while (in_chat)
-        {
-            selectedChat->markMessagesRead(getCurrentUsername());
-            selectedChat->displayChat();
-            cout << "\n1. Send Message\n2. Search Messages\n3. Edit Messages\n"
-                 << "4. Delete Messages\n5. Back\nChoice: ";
-            string input;
-            cin >> input;
-            cin.ignore();
-            int choice = stoi(input);
-            switch (choice)
-            {
-            case 1:
-            {
-                selectedChat->showTypingIndicator(u1);
-                string content, emoji;
-                cout << "Enter your message: ";
-                getline(cin, content);
-                Message msg(u1, content);
-                cout << "To add an emoji please choose from the following \n"
-                     << "{smile,shy,angry,heart,cry,none}" << endl;
-                cin >> emoji;
-                msg.addEmoji(emoji);
-                selectedChat->addMessage(msg);
-
-                break;
-            }
-            case 2:
-            {
-                string key;
-                cout << "Entry Keyword: " << endl;
-                getline(cin, key);
-                vector<Message> resluts = selectedChat->searchMessages(key);
-                for (const auto &msg : resluts)
-                {
-                    msg.display();
-                }
-                break;
-            }
-
-            case 3:
-            {
-                int index;
-                string new_content;
-                cout << "Enter Index of message to be Edited: " << endl;
-                cin >> index;
-                cin.ignore();
-
-                cout << "Enter New Edited Message: " << endl;
-                getline(cin, new_content);
-
-                selectedChat->editMessage(index, new_content, u1);
-                break;
-            }
-            case 4:
-            {
-
-                int index;
-                string new_content;
-                cout << "Enter Index of message to be deleted: " << endl;
-                cin >> index;
-                selectedChat->deleteMessage(index, u1);
-                break;
-            }
-            case 5:
-            {
-                in_chat = false;
-            }
-            default:
-                cout << "Enter a valid Choice!" << endl;
-                break;
-            }
-        }
+        enterChat(selectedChat);
     }
 
     void createGroup() // i need to check if the other users have the created chat or not
@@ -972,120 +898,7 @@ public:
         getline(cin, description);
         thisGroup->setDescription(description);
         cout << endl;
-
-        bool in_groupchat = true;
-        while (in_groupchat)
-        {
-            thisGroup->markMessagesRead(getCurrentUsername());
-
-            thisGroup->displayChat();
-            cout << "\n1. Send Message\n2. Search Messages\n3. Edit Messages\n"
-                 << "4. Delete Messages\n";
-            if (thisGroup->isAdmin(u1))
-            {
-                cout << "5. Add Admin\n6. Add Participants\n7. Remove Participants\n"; // this is the new part we need to implement this
-            }
-            cout << "8. Back\nChoice: ";
-            string input;
-            cin >> input;
-            cin.ignore();
-            int choice = stoi(input); // handles letter input NOTE: i need to do this in the top too in choosing the members, also i took most of the code from the private chat part
-
-            switch (choice)
-            {
-            case 1:
-            {
-                thisGroup->showTypingIndicator(u1);
-                string content, emoji;
-                cout << "Enter your message: ";
-                getline(cin, content);
-                Message msg(u1, content);
-                cout << "To add an emoji please choose from the following \n"
-                     << "{smile,shy,angry,heart,cry,none}" << endl;
-                cin >> emoji;
-                msg.addEmoji(emoji);
-                thisGroup->addMessage(msg);
-
-                break;
-            }
-            case 2:
-            {
-                string key;
-                cout << "Entry Keyword: " << endl;
-                getline(cin, key);
-                vector<Message> resluts = thisGroup->searchMessages(key);
-                for (const auto &msg : resluts)
-                {
-                    msg.display();
-                }
-                break;
-            }
-
-            case 3:
-            {
-                int index;
-                string new_content;
-                cout << "Enter Index of message to be Edited: " << endl;
-                cin >> index;
-                cin.ignore();
-
-                cout << "Enter New Edited Message: " << endl;
-                getline(cin, new_content);
-
-                thisGroup->editMessage(index, new_content, u1);
-                break;
-            }
-            case 4:
-            {
-
-                int index;
-                string new_content;
-                cout << "Enter Index of message to be deleted: " << endl;
-                cin >> index;
-                thisGroup->deleteMessage(index, u1);
-                break;
-            }
-
-            // ---------------------------------- TODO IMPLEMENT THE 5 6 7 CASES : ADD ADMIN, ADD PARTICIPANTS ,REMOVE PARTICIPANTS
-            case 5:
-            {
-                cout << "Enter username to grant admin: ";
-                string username;
-                getline(cin, username);
-                thisGroup->addAdmin(username);
-
-                break;
-            }
-            case 6:
-            {
-                cout << "Enter username to add to group: ";
-                string username;
-                getline(cin, username);
-                if (findUserIndex(username) == -1)
-                {
-                    cout << "User not found ." << endl;
-                    break;
-                }
-                thisGroup->sendJoinRequest(username);
-                break;
-            }
-            case 7:
-            {
-                cout << "Enter username to remove from group: ";
-                string username;
-                getline(cin, username);
-                thisGroup->removeParticipant(u1, username);
-                break;
-            }
-            case 8:
-            {
-                in_groupchat = false;
-            }
-            default:
-                cout << "Enter a valid Choice!" << endl;
-                break;
-            }
-        }
+        enterChat(thisGroup);
         /* Habiba's Code :
      if(! isLoggedIn()){
      cout<<"login"<<endl;
@@ -1178,118 +991,197 @@ public:
     {
         string u1 = getCurrentUsername();
         GroupChat *thisGroup = dynamic_cast<GroupChat *>(selectedChat);
-
-        bool in_groupchat = true;
-        while (in_groupchat)
+        if (thisGroup) // need to make managing the private chat and group chat a function to avoid alot of code retype
         {
-            thisGroup->markMessagesRead(getCurrentUsername());
+            bool in_groupchat = true;
+            while (in_groupchat)
+            {
+                thisGroup->markMessagesRead(getCurrentUsername());
 
-            thisGroup->displayChat();
-            cout << "\n1. Send Message\n2. Search Messages\n3. Edit Messages\n"
-                 << "4. Delete Messages\n";
-            if (thisGroup->isAdmin(u1))
-            {
-                cout << "5. Add Admin\n6. Add Participants\n7. Remove Participants\n"; // this is the new part we need to implement this
-            }
-            cout << "8. Back\nChoice: ";
-            string input;
-            cin >> input;
-            cin.ignore();
-            int choice = stoi(input); // handles letter input NOTE: i need to do this in the top too in choosing the members, also i took most of the code from the private chat part
-
-            switch (choice)
-            {
-            case 1:
-            {
-                thisGroup->showTypingIndicator(u1);
-                string content, emoji;
-                cout << "Enter your message: ";
-                getline(cin, content);
-                Message msg(u1, content);
-                cout << "To add an emoji please choose from the following \n"
-                     << "{smile,shy,angry,heart,cry,none}" << endl;
-                cin >> emoji;
-                msg.addEmoji(emoji);
-                thisGroup->addMessage(msg);
-
-                break;
-            }
-            case 2:
-            {
-                string key;
-                cout << "Entry Keyword: " << endl;
-                getline(cin, key);
-                vector<Message> resluts = thisGroup->searchMessages(key);
-                for (const auto &msg : resluts)
+                thisGroup->displayChat();
+                cout << "\n1. Send Message\n2. Search Messages\n3. Edit Messages\n"
+                     << "4. Delete Messages\n";
+                if (thisGroup->isAdmin(u1))
                 {
-                    msg.display();
+                    cout << "5. Add Admin\n6. Add Participants\n7. Remove Participants\n"; // this is the new part we need to implement this
                 }
-                break;
-            }
-
-            case 3:
-            {
-                int index;
-                string new_content;
-                cout << "Enter Index of message to be Edited: " << endl;
-                cin >> index;
+                cout << "8. Back\nChoice: ";
+                string input;
+                cin >> input;
                 cin.ignore();
+                int choice = stoi(input); // handles letter input NOTE: i need to do this in the top too in choosing the members, also i took most of the code from the private chat part
 
-                cout << "Enter New Edited Message: " << endl;
-                getline(cin, new_content);
-
-                thisGroup->editMessage(index, new_content, u1);
-                break;
-            }
-            case 4:
-            {
-
-                int index;
-                string new_content;
-                cout << "Enter Index of message to be deleted: " << endl;
-                cin >> index;
-                thisGroup->deleteMessage(index, u1);
-                break;
-            }
-
-            // ---------------------------------- TODO IMPLEMENT THE 5 6 7 CASES : ADD ADMIN, ADD PARTICIPANTS ,REMOVE PARTICIPANTS
-            case 5:
-            {
-                cout << "Enter username to grant admin: ";
-                string username;
-                getline(cin, username);
-                thisGroup->addAdmin(username);
-
-                break;
-            }
-            case 6:
-            {
-                cout << "Enter username to add to group: ";
-                string username;
-                getline(cin, username);
-                if (findUserIndex(username) == -1)
+                switch (choice)
                 {
-                    cout << "User not found ." << endl;
+                case 1:
+                {
+                    thisGroup->showTypingIndicator(u1);
+                    string content, emoji;
+                    cout << "Enter your message: ";
+                    getline(cin, content);
+                    Message msg(u1, content);
+                    cout << "To add an emoji please choose from the following \n"
+                         << "{smile,shy,angry,heart,cry,none}" << endl;
+                    cin >> emoji;
+                    msg.addEmoji(emoji);
+                    thisGroup->addMessage(msg);
+
                     break;
                 }
-                thisGroup->sendJoinRequest(username);
-                break;
+                case 2:
+                {
+                    string key;
+                    cout << "Entry Keyword: " << endl;
+                    getline(cin, key);
+                    vector<Message> resluts = thisGroup->searchMessages(key);
+                    for (const auto &msg : resluts)
+                    {
+                        msg.display();
+                    }
+                    break;
+                }
+
+                case 3:
+                {
+                    int index;
+                    string new_content;
+                    cout << "Enter Index of message to be Edited: " << endl;
+                    cin >> index;
+                    cin.ignore();
+
+                    cout << "Enter New Edited Message: " << endl;
+                    getline(cin, new_content);
+
+                    thisGroup->editMessage(index, new_content, u1);
+                    break;
+                }
+                case 4:
+                {
+
+                    int index;
+                    string new_content;
+                    cout << "Enter Index of message to be deleted: " << endl;
+                    cin >> index;
+                    thisGroup->deleteMessage(index, u1);
+                    break;
+                }
+
+                // ---------------------------------- TODO IMPLEMENT THE 5 6 7 CASES : ADD ADMIN, ADD PARTICIPANTS ,REMOVE PARTICIPANTS
+                case 5:
+                {
+                    cout << "Enter username to grant admin: ";
+                    string username;
+                    getline(cin, username);
+                    thisGroup->addAdmin(username);
+
+                    break;
+                }
+                case 6:
+                {
+                    cout << "Enter username to add to group: ";
+                    string username;
+                    getline(cin, username);
+                    if (findUserIndex(username) == -1)
+                    {
+                        cout << "User not found ." << endl;
+                        break;
+                    }
+                    thisGroup->sendJoinRequest(username);
+                    break;
+                }
+                case 7:
+                {
+                    cout << "Enter username to remove from group: ";
+                    string username;
+                    getline(cin, username);
+                    thisGroup->removeParticipant(u1, username);
+                    break;
+                }
+                case 8:
+                {
+                    in_groupchat = false;
+                }
+                default:
+                    cout << "Enter a valid Choice!" << endl;
+                    break;
+                }
             }
-            case 7:
+        }
+        else
+        {
+            bool in_chat = true;
+            while (in_chat)
             {
-                cout << "Enter username to remove from group: ";
-                string username;
-                getline(cin, username);
-                thisGroup->removeParticipant(u1, username);
-                break;
-            }
-            case 8:
-            {
-                in_groupchat = false;
-            }
-            default:
-                cout << "Enter a valid Choice!" << endl;
-                break;
+                selectedChat->markMessagesRead(getCurrentUsername());
+                selectedChat->displayChat();
+                cout << "\n1. Send Message\n2. Search Messages\n3. Edit Messages\n"
+                     << "4. Delete Messages\n5. Back\nChoice: ";
+                string input;
+                cin >> input;
+                cin.ignore();
+                int choice = stoi(input);
+                switch (choice)
+                {
+                case 1:
+                {
+                    selectedChat->showTypingIndicator(u1);
+                    string content, emoji;
+                    cout << "Enter your message: ";
+                    getline(cin, content);
+                    Message msg(u1, content);
+                    cout << "To add an emoji please choose from the following \n"
+                         << "{smile,shy,angry,heart,cry,none}" << endl;
+                    cin >> emoji;
+                    msg.addEmoji(emoji);
+                    selectedChat->addMessage(msg);
+
+                    break;
+                }
+                case 2:
+                {
+                    string key;
+                    cout << "Entry Keyword: " << endl;
+                    getline(cin, key);
+                    vector<Message> resluts = selectedChat->searchMessages(key);
+                    for (const auto &msg : resluts)
+                    {
+                        msg.display();
+                    }
+                    break;
+                }
+
+                case 3:
+                {
+                    int index;
+                    string new_content;
+                    cout << "Enter Index of message to be Edited: " << endl;
+                    cin >> index;
+                    cin.ignore();
+
+                    cout << "Enter New Edited Message: " << endl;
+                    getline(cin, new_content);
+
+                    selectedChat->editMessage(index, new_content, u1);
+                    break;
+                }
+                case 4:
+                {
+
+                    int index;
+                    string new_content;
+                    cout << "Enter Index of message to be deleted: " << endl;
+                    cin >> index;
+                    selectedChat->deleteMessage(index, u1);
+                    break;
+                }
+                case 5:
+                {
+                    in_chat = false;
+                }
+                default:
+                    cout << "Enter a valid Choice!" << endl;
+                    break;
+                }
             }
         }
     }
