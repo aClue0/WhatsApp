@@ -1,12 +1,12 @@
 ﻿#include <iostream>
 #include <vector> // do reply to in send message and typing indicator
 #include <string>
-#include <ctime>
+#include <ctime> // Hi have a good day
 #include <fstream>
 using namespace std;
 
 // ========================
-//       USER CLASS   habiba 
+//       USER CLASS
 // ========================
 class User // username,password,phone
 {
@@ -632,23 +632,21 @@ private:
     vector<Chat *> chats;
     int currentUserIndex;
 
-    int findUserIndex(string  username) const
+    int findUserIndex(string username) const
     {
         // TODO: Implement user search
-         for (int i = 0; i < users.size(); i++)
+        for (int i = 0; i < users.size(); i++)
         {
             if (users[i].getUsername() == username)
             {
                 return i;
             }
         }
-
         return -1;
     }
 
     bool isLoggedIn() const
     {
-        
         // TODO: Implement login check
         if (currentUserIndex != -1 && users[currentUserIndex].getStatus() == "online")
         {
@@ -659,13 +657,12 @@ private:
 
     string getCurrentUsername() const
     {
-    // TODO: Implement get current user 
-       
-        if ( currentUserIndex != -1 ){
-            return users[ currentUserIndex].getUsername(); 
+        // TODO: Implement get current user
+        if (currentUserIndex != -1)
+        {
+            return users[currentUserIndex].getUsername();
         }
-        else{}
-       return "";
+        return "";
     }
 
 public:
@@ -788,8 +785,8 @@ public:
                 string key;
                 cout << "Entry Keyword: " << endl;
                 getline(cin, key);
-                vector<Message> resluts = selectedChat->searchMessages(key);
-                for (const auto &msg : resluts)
+                vector<Message> results = selectedChat->searchMessages(key);
+                for (const auto &msg : results)
                 {
                     msg.display();
                 }
@@ -831,10 +828,163 @@ public:
         }
     }
 
-    void createGroup()
+    void createGroup() // i need to check if the other users have the created chat or not
     {
-        // TODO: Implement group creation
-     if(! isLoggedIn()){
+        // TODO: Implement group creation   changes made by -Hazem
+        cin.ignore();
+        int input;
+        string u1 = users[currentUserIndex].getUsername();
+
+        cout << "Who do you want to add to your group?" << endl;
+        for (int i = 0; i < users.size(); i++) // displays the users you can add
+        {
+            cout << i << ") " << users[i].getUsername() << " ";
+        }
+        cout << "\nNOTE: To complete adding members to your Group Chat enter \"-1\"" << endl; // taking -1 as exit
+
+        bool isAddingMember = true;
+        vector<string> AddedMembers = {u1}; // creator is already part of the group
+        while (isAddingMember)              // keeps registering their index and adding them in AddedMembers until you type -1
+        {
+            int input;
+            cin >> input;
+            if (input == -1) // if you exited
+            {
+                isAddingMember = false;
+            }
+            else
+            {
+                string thisUser = users[input].getUsername();
+                bool exist = false; // need to check if I already added that member
+
+                for (int i = 0; i < AddedMembers.size(); i++)
+                {
+                    string thisMember = AddedMembers[i];
+                    if (thisUser == thisMember)
+                    {
+                        cout << "Member already exist!" << endl;
+                        exist = true;
+                        break;
+                    }
+                }
+
+                if (input != -1 && (input > 0 && input < users.size()) & isAddingMember & !exist) // if your index is right
+                {
+                    AddedMembers.push_back(users[input].getUsername());
+                }
+            }
+        }
+        cin.ignore();
+        cout << endl
+             << "------------------ Name your Group Chat! ------------------" << endl;
+
+        string groupName = {};   // ---------------------- i dont think that I need to check if there is a group chat with the same requirements or not because there may be but i want to create another one with another name or smt
+        getline(cin, groupName); // enter your group name
+
+        GroupChat *thisGroup = new GroupChat(AddedMembers, groupName, u1 /*Creator*/); // makes group chat
+        thisGroup->addAdmin(u1);                                                       // adds creator in the admin rightaway
+        chats.push_back(thisGroup);
+        cout << "What is your group's description? ";
+        string description = {};
+        getline(cin, description);
+        thisGroup->setDescription(description);
+        cout << endl;
+
+        bool in_groupchat = true;
+        while (in_groupchat)
+        {
+            thisGroup->displayChat();
+            cout << "\n1. Send Message\n2. Search Messages\n3. Edit Messages\n"
+                 << "4. Delete Messages\n";
+            if (thisGroup->isAdmin(u1))
+            {
+                cout << "5. Add Admin\n6. Add Participants\n7. Remove Participants\n"; // this is the new part we need to implement this
+            }
+            cout << "8. Back\nChoice: ";
+            string input;
+            cin >> input;
+            cin.ignore();
+            int choice = stoi(input); // handles letter input NOTE: i need to do this in the top too in choosing the members, also i took most of the code from the private chat part
+
+            switch (choice)
+            {
+            case 1:
+            {
+                thisGroup->showTypingIndicator(u1);
+                string content, emoji;
+                cout << "Enter your message: ";
+                getline(cin, content);
+                Message msg(u1, content);
+                cout << "To add an emoji please choose from the following \n"
+                     << "{smile,shy,angry,heart,cry,none}" << endl;
+                cin >> emoji;
+                msg.addEmoji(emoji);
+                thisGroup->addMessage(msg);
+
+                break;
+            }
+            case 2:
+            {
+                string key;
+                cout << "Entry Keyword: " << endl;
+                getline(cin, key);
+                vector<Message> resluts = thisGroup->searchMessages(key);
+                for (const auto &msg : resluts)
+                {
+                    msg.display();
+                }
+                break;
+            }
+
+            case 3:
+            {
+                int index;
+                string new_content;
+                cout << "Enter Index of message to be Edited: " << endl;
+                cin >> index;
+                cin.ignore();
+
+                cout << "Enter New Edited Message: " << endl;
+                getline(cin, new_content);
+
+                thisGroup->editMessage(index, new_content, u1);
+                break;
+            }
+            case 4:
+            {
+
+                int index;
+                string new_content;
+                cout << "Enter Index of message to be deleted: " << endl;
+                cin >> index;
+                thisGroup->deleteMessage(index, u1);
+                break;
+            }
+
+            // ---------------------------------- TODO IMPLEMENT THE 5 6 7 CASES : ADD ADMIN, ADD PARTICIPANTS ,REMOVE PARTICIPANTS
+            case 5:
+            {
+                break;
+            }
+            case 6:
+            {
+                break;
+            }
+            case 7:
+            {
+                break;
+            }
+            case 8:
+            {
+                in_groupchat = false;
+            }
+            default:
+                cout << "Enter a valid Choice!" << endl;
+                break;
+            }
+        }
+        /* Habiba's Code :
+         if(! isLoggedIn()){
      cout<<"login"<<endl;
         return;
         }
@@ -861,29 +1011,31 @@ public:
             members.push_back(memberName);
         }
         else{
-            cout<<" member not found ";    
+            cout<<" member not found ";
            }
            GroupChat* newgroup = new
            GroupChat(members,groupname,currentUser );
            chats.push_back(newgroup);
 
            cout<<"group has been created"<< groupname <<endl;
-
-
-
-        }
-
-
+*/
     }
 
     void viewChats() const
     {
         // TODO: Implement chat viewing
-        cout << "------------------ Chats ------------------" << endl;
-        for (int i = 0; i < chats.size(); i++)
+        if (chats.size() == 0)
         {
-            cout << i + 1 << ") " << chats[i]->getName() << endl;
-            ;
+            cout << "No Chats yet, Try to Chat with someone!" << endl;
+        }
+        else
+        {
+            cout << "Chats: " << endl;
+            for (int i = 0; i < chats.size(); i++)
+            {
+                cout << i << "- " << chats[i]->getName() << endl;
+                ;
+            }
         }
     }
 
