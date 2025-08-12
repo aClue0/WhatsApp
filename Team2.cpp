@@ -240,7 +240,7 @@ public:
         }
         else if (emojiCode == "shy")
         {
-            content += " :\"";
+            content += " >.<";
         }
         else if (emojiCode == "angry")
         {
@@ -771,7 +771,7 @@ public:
         User thisUser(username, password, phone);
         users.push_back(thisUser);
         saveToFile(thisUser);
-        cout << "\n------------------Signup successful! You can now log in ------------------" << endl;
+        cout << "\n------------------ Signup successful! You can now log in ------------------" << endl;
     }
 
     void login()
@@ -947,10 +947,14 @@ public:
                     }
                 }
 
-                if (input != -1 && (input > 0 && input < users.size()) & isAddingMember & !exist) // if your index is right
+                if (input != -1 && (input >= 0 && input < users.size()) && isAddingMember && !exist) // if your index is right
                 {
                     AddedMembers.push_back(thisUser);
                     cout << thisUser << " added to group." << endl;
+                }
+                else if (input < 0 || input >= users.size())
+                {
+                    cout << "Invalid user index!" << endl;
                 }
             }
         }
@@ -962,7 +966,6 @@ public:
         getline(cin, groupName); // enter your group name
 
         GroupChat *thisGroup = new GroupChat(AddedMembers, groupName, u1 /*Creator*/); // makes group chat
-        thisGroup->addAdmin(u1);                                                       // adds creator in the admin rightaway
         chats.push_back(thisGroup);
         cout << "What is your group's description? ";
         string description = {};
@@ -1157,6 +1160,136 @@ public:
             for (int i = 0; i < userChats.size(); i++)
             {
                 cout << i << "- " << userChats[i]->getName() << endl;
+            }
+
+            cout << "\nEnter chat number to open (or -1 to go back): ";
+            int input;
+            cin >> input;
+            cin.ignore();
+
+            if (input >= 0 && input < userChats.size())
+            {
+                enterChat(userChats[input]);
+            }
+        }
+    }
+
+    void enterChat(Chat *selectedChat) const
+    {
+        string u1 = getCurrentUsername();
+        GroupChat *thisGroup = dynamic_cast<GroupChat *>(selectedChat);
+
+        bool in_groupchat = true;
+        while (in_groupchat)
+        {
+            thisGroup->markMessagesRead(getCurrentUsername());
+
+            thisGroup->displayChat();
+            cout << "\n1. Send Message\n2. Search Messages\n3. Edit Messages\n"
+                 << "4. Delete Messages\n";
+            if (thisGroup->isAdmin(u1))
+            {
+                cout << "5. Add Admin\n6. Add Participants\n7. Remove Participants\n"; // this is the new part we need to implement this
+            }
+            cout << "8. Back\nChoice: ";
+            string input;
+            cin >> input;
+            cin.ignore();
+            int choice = stoi(input); // handles letter input NOTE: i need to do this in the top too in choosing the members, also i took most of the code from the private chat part
+
+            switch (choice)
+            {
+            case 1:
+            {
+                thisGroup->showTypingIndicator(u1);
+                string content, emoji;
+                cout << "Enter your message: ";
+                getline(cin, content);
+                Message msg(u1, content);
+                cout << "To add an emoji please choose from the following \n"
+                     << "{smile,shy,angry,heart,cry,none}" << endl;
+                cin >> emoji;
+                msg.addEmoji(emoji);
+                thisGroup->addMessage(msg);
+
+                break;
+            }
+            case 2:
+            {
+                string key;
+                cout << "Entry Keyword: " << endl;
+                getline(cin, key);
+                vector<Message> resluts = thisGroup->searchMessages(key);
+                for (const auto &msg : resluts)
+                {
+                    msg.display();
+                }
+                break;
+            }
+
+            case 3:
+            {
+                int index;
+                string new_content;
+                cout << "Enter Index of message to be Edited: " << endl;
+                cin >> index;
+                cin.ignore();
+
+                cout << "Enter New Edited Message: " << endl;
+                getline(cin, new_content);
+
+                thisGroup->editMessage(index, new_content, u1);
+                break;
+            }
+            case 4:
+            {
+
+                int index;
+                string new_content;
+                cout << "Enter Index of message to be deleted: " << endl;
+                cin >> index;
+                thisGroup->deleteMessage(index, u1);
+                break;
+            }
+
+            // ---------------------------------- TODO IMPLEMENT THE 5 6 7 CASES : ADD ADMIN, ADD PARTICIPANTS ,REMOVE PARTICIPANTS
+            case 5:
+            {
+                cout << "Enter username to grant admin: ";
+                string username;
+                getline(cin, username);
+                thisGroup->addAdmin(username);
+
+                break;
+            }
+            case 6:
+            {
+                cout << "Enter username to add to group: ";
+                string username;
+                getline(cin, username);
+                if (findUserIndex(username) == -1)
+                {
+                    cout << "User not found ." << endl;
+                    break;
+                }
+                thisGroup->sendJoinRequest(username);
+                break;
+            }
+            case 7:
+            {
+                cout << "Enter username to remove from group: ";
+                string username;
+                getline(cin, username);
+                thisGroup->removeParticipant(u1, username);
+                break;
+            }
+            case 8:
+            {
+                in_groupchat = false;
+            }
+            default:
+                cout << "Enter a valid Choice!" << endl;
+                break;
             }
         }
     }
