@@ -837,10 +837,10 @@ public:
     void viewChats() const
     {
         // TODO: Implement chat viewing
-        cout << "Chats: " << endl;
+        cout << "------------------ Chats ------------------" << endl;
         for (int i = 0; i < chats.size(); i++)
         {
-            cout << i << "- " << chats[i]->getName() << endl;
+            cout << i + 1 << ") " << chats[i]->getName() << endl;
             ;
         }
     }
