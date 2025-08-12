@@ -6,7 +6,7 @@
 using namespace std;
 
 // ========================
-//       USER CLASS
+//       USER CLASS   habiba 
 // ========================
 class User // username,password,phone
 {
@@ -632,21 +632,23 @@ private:
     vector<Chat *> chats;
     int currentUserIndex;
 
-    int findUserIndex(string username) const
+    int findUserIndex(string  username) const
     {
         // TODO: Implement user search
-        for (int i = 0; i < users.size(); i++)
+         for (int i = 0; i < users.size(); i++)
         {
             if (users[i].getUsername() == username)
             {
                 return i;
             }
         }
+
         return -1;
     }
 
     bool isLoggedIn() const
     {
+        
         // TODO: Implement login check
         if (currentUserIndex != -1 && users[currentUserIndex].getStatus() == "online")
         {
@@ -657,12 +659,13 @@ private:
 
     string getCurrentUsername() const
     {
-        // TODO: Implement get current user
-        if (currentUserIndex != -1)
-        {
-            return users[currentUserIndex].getUsername();
+    // TODO: Implement get current user 
+       
+        if ( currentUserIndex != -1 ){
+            return users[ currentUserIndex].getUsername(); 
         }
-        return "";
+        else{}
+       return "";
     }
 
 public:
@@ -831,7 +834,46 @@ public:
     void createGroup()
     {
         // TODO: Implement group creation
-        // hi
+     if(! isLoggedIn()){
+     cout<<"login"<<endl;
+        return;
+        }
+         string groupname;
+        cout<<"create group"<<endl;
+        cout<<"inter group name"<<endl;
+        cin.ignore();
+        getline(cin,groupname);
+
+          vector<string> members;
+       string currentUser = getCurrentUsername();
+       members.push_back(currentUser);
+
+        int nummembers;
+       cout<<"add nummembers"<<endl;
+       cin>>" nummembers";
+
+        for( int i = 0 ; i< nummembers; i++){
+        string memberName;
+        cout<<"enter memberName"<< i+1<<":"<<endl;
+        cin>>"memberName";
+
+        if (findUserIndex(memberName) != -1 && memberName != currentUser){
+            members.push_back(memberName);
+        }
+        else{
+            cout<<" member not found ";    
+           }
+           GroupChat* newgroup = new
+           GroupChat(members,groupname,currentUser );
+           chats.push_back(newgroup);
+
+           cout<<"group has been created"<< groupname <<endl;
+
+
+
+        }
+
+
     }
 
     void viewChats() const
